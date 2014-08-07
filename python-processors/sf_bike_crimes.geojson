@@ -397,20 +397,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.444724369212, 
           37.7542982036727
         ]
@@ -1755,20 +1741,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.390971734594, 
           37.7340152181037
         ]
@@ -3085,20 +3057,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.433760105468, 
           37.7537559306576
         ]
@@ -3409,20 +3367,6 @@
         "coordinates": [
           -122.455752866546, 
           37.7839372132163
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
         ]
       }, 
       "type": "Feature", 
@@ -6851,20 +6795,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.419884939464, 
           37.7782510832182
         ]
@@ -9191,20 +9121,6 @@
         "coordinates": [
           -122.410120054441, 
           37.7617606647049
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
         ]
       }, 
       "type": "Feature", 
@@ -13039,20 +12955,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.394027456496, 
           37.7950527335145
         ]
@@ -15762,20 +15664,6 @@
       "type": "Feature", 
       "properties": {
         "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
         "Cat": "LARCENY/THEFT"
       }
     }, 
@@ -18821,20 +18709,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.39207207708, 
           37.7867999530921
         ]
@@ -19159,20 +19033,6 @@
         "coordinates": [
           -122.448021729712, 
           37.775153881828
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
         ]
       }, 
       "type": "Feature", 
@@ -20963,20 +20823,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.433689691194, 
           37.7147504957265
         ]
@@ -21516,20 +21362,6 @@
       "type": "Feature", 
       "properties": {
         "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "PETTY THEFT BICYCLE", 
         "Cat": "LARCENY/THEFT"
       }
     }, 
@@ -22363,20 +22195,6 @@
       "geometry": {
         "type": "Point", 
         "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
           -122.396774882993, 
           37.795431205951
         ]
@@ -23196,20 +23014,6 @@
       "type": "Feature", 
       "properties": {
         "Desc": "PETTY THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "ATTEMPTED THEFT OF A BICYCLE", 
         "Cat": "LARCENY/THEFT"
       }
     }, 
@@ -25641,20 +25445,6 @@
         "coordinates": [
           -122.434694972795, 
           37.7735101281736
-        ]
-      }, 
-      "type": "Feature", 
-      "properties": {
-        "Desc": "GRAND THEFT BICYCLE", 
-        "Cat": "LARCENY/THEFT"
-      }
-    }, 
-    {
-      "geometry": {
-        "type": "Point", 
-        "coordinates": [
-          0.0, 
-          0.0
         ]
       }, 
       "type": "Feature", 
