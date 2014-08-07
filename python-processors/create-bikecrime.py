@@ -4,7 +4,7 @@ from scipy import stats
 from rasterio import features, Affine
 from shapely.geometry import Polygon, MultiPolygon, mapping
 from fiona.crs import from_epsg
-import numpy as np 
+import numpy as np
 
 def latlngToXY(ll):
     from math import pi, log, tan
@@ -53,7 +53,7 @@ xmin = xys[:,0].min()
 xmax = xys[:,0].max()
 ymin = xys[:,1].min()
 ymax = xys[:,1].max()
-X, Y = np.mgrid[xmin:xmax:100, ymin:ymax:100]
+X, Y = np.mgrid[xmin:xmax:50, ymin:ymax:50]
 positions = np.vstack([X.ravel(), Y.ravel()])
 values = np.vstack([xys[:,0], xys[:,1]])
 del xys
@@ -78,7 +78,7 @@ transform = Affine(
 schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'int' } }
 print "Writing to shp..."
 
-shpfile = "crimepolys-shapely.shp"
+shpfile = "crimepolys-50.shp"
 
 
 with fiona.collection(shpfile, "w", "ESRI Shapefile", schema, crs=from_epsg(3857)) as outshp:
