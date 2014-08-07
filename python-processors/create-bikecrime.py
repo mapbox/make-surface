@@ -1,12 +1,45 @@
 
-import csv, os, fiona
+import csv, os, fiona, json, sys, argparse
 from scipy import stats
 from rasterio import features, Affine
 from shapely.geometry import Polygon, MultiPolygon, mapping
 from fiona.crs import from_epsg
-import numpy as np 
+import numpy as np
 
-def latlngToXY(ll):
+parser = argparse.ArgumentParser(description='Create Density Surface from GeoJSON points.')
+
+parser.add_argument('infile',
+                    help='Input GeoJSON')
+
+parser.add_argument('outfile',
+                    help='Output Shapefile')
+
+parser.add_argument('cellsize',
+                    help='Grid size of analysis raster, in meters')
+
+parser.add_argument('kernel',
+                    help='Kernel bandwidth')
+
+parser.add_argument('classes',
+                    help='Number of output classes')
+
+parser.add_argument('--w',
+                     help='Classification weighting')
+
+args = parser.parse_args()
+
+cellSize = int(args.cellsize)
+
+kernBW = float(args.kernel)
+
+classNumber = int(args.classes)
+
+if args.w == None:
+    classWeight = 0.5
+else:
+    classWeight = float(args.w)
+
+def lnglatToXY(ll):
     from math import pi, log, tan
     D2R = pi / 180.0
     A = 6378137.0
@@ -21,50 +54,44 @@ def classify(zArr,classes,weighting=0.5):
     zMin = zArr.min()
     zRange = zMax-zMin
     zInterval = zRange/float(classes)
-    print zMin,zMax
+    print "Classifying into "+str(classes)+" classes between "+str(zMin)+" and "+str(zMax)
     for i in range(0,classes):
         eQint = i*zInterval+zMin
         quant = np.percentile(zArr, i/float(classes)*100)
         cClass = weighting*eQint+(1.0-weighting)*quant
         outRas[np.where(zArr>cClass)] = cClass
-        print eQint, quant
     return ((outRas/zMax)*256).astype(np.uint8)
+
+
+
+with open(args.infile, 'r') as pointFile:
+    geojson = json.loads(pointFile.read())
 
 xys = []
 
-sdir = '/Users/dnomadb/python-minis/data-doers/sfpd_incident_all_csv'
-print "Reading file.."
-for w, f in enumerate(os.listdir(sdir)):
-    afile = os.path.join(sdir,f)
-    year = int(f.replace('.csv','').split('_')[-1])
-    with open(afile, 'r') as ofile:
-        reader = csv.DictReader(ofile)
-        for row in reader:
-            for i in row:
-                bikeEval = row[i].lower()
-                if bikeEval.find('bike') != -1 or bikeEval.find('bicycle') != -1:
-                    for weight in range(w+1):
-                        xys.append(latlngToXY([float(row['X']), float(row['Y'])]))
+for f in geojson['features']:
+    xys.append(lnglatToXY(f['geometry']['coordinates']))
+del geojson
 
 xys = np.array(xys)
-xys = xys[np.where(xys[:,0]<-122.0)]
-xys = xys[np.where(xys[:,1]>30.0)]
+
 xmin = xys[:,0].min()
 xmax = xys[:,0].max()
 ymin = xys[:,1].min()
 ymax = xys[:,1].max()
-X, Y = np.mgrid[xmin:xmax:100, ymin:ymax:100]
+X, Y = np.mgrid[xmin:xmax:cellSize, ymin:ymax:cellSize]
 positions = np.vstack([X.ravel(), Y.ravel()])
 values = np.vstack([xys[:,0], xys[:,1]])
 del xys
 print "Running gaussian kernel.."
-kernel = stats.gaussian_kde(values,bw_method=0.05)
+kernel = stats.gaussian_kde(values,bw_method=kernBW)
 Z = np.reshape(kernel(positions).T, X.shape)
 del kernel, positions, X, Y
 Ztemp = (Z*10e+10).astype(np.uint16)
 del Z
+
 print "Classifying..."
-Z16 = classify(Ztemp,50,0.4)
+Z16 = classify(Ztemp,classNumber,classWeight)
 del Ztemp
 pixel_size_x = (xmax - xmin)/Z16.shape[0]
 pixel_size_y = (ymax - ymin)/Z16.shape[1]
@@ -76,16 +103,14 @@ transform = Affine(
                 0.0, -pixel_size_y, upper_left_y)
 
 schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'int' } }
+
 print "Writing to shp..."
 
-shpfile = "crimepolys-shapely.shp"
-
-
-with fiona.collection(shpfile, "w", "ESRI Shapefile", schema, crs=from_epsg(3857)) as outshp:
+with fiona.collection(args.outfile, "w", "ESRI Shapefile", schema, crs=from_epsg(3857)) as outshp:
     for feature, shapes in features.shapes(np.asarray(np.rot90(Z16.astype(np.uint8)),order='C'),transform=transform):
         featurelist = []
         for f in feature['coordinates']:
             featurelist.append(Polygon(f))
         poly = MultiPolygon(featurelist)
-        outshp.write({'geometry': mapping(poly),'properties': {'value': shapes}});
+        outshp.write({'geometry': mapping(poly),'properties': {'value': shapes}})
 
