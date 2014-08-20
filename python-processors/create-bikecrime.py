@@ -75,6 +75,8 @@ del geojson
 
 xys = np.array(xys)
 
+print xys.shape
+
 xmin = xys[:,0].min()
 xmax = xys[:,0].max()
 ymin = xys[:,1].min()
