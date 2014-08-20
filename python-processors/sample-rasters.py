@@ -1,4 +1,4 @@
-import fiona, argparse
+import fiona, argparse, json
 from rasterio import features
 import rasterio as rio
 import numpy as np
@@ -11,9 +11,12 @@ parser.add_argument('infile',
 parser.add_argument('inshp',
                     help='Input Shapefile')
 
+parser.add_argument('outJSON',
+                    help='Output JSON')
 
 parser.add_argument('field',
-                    help='Input Shapefile')
+                    help='Input Field to Aggregate')
+
 
 args = parser.parse_args()
 
@@ -36,8 +39,10 @@ out = {}
 
 for i in fields:
     valuearr = nir[np.where(rasters == i)]
-    out[i] = valuearr.ravel()
+    out[i] = valuearr.ravel().tolist();
 
-print out
+with open(args.outJSON, 'w') as ofile:
+    ofile.write(json.dumps(out, indent=4))
+
 
 
