@@ -20,20 +20,19 @@ parser.add_argument('field',
 
 args = parser.parse_args()
 
-src = rio.open(args.infile,'r')
-nir = src.read_band(4)
-oshape = src.shape
-otrans = src.transform
-src.close()
-fields = []
-with fiona.collection(args.inshp, "r") as shp:
-    for feat in shp:
-        fields.append(feat['properties'][args.field])
-    rasters = features.rasterize(((feat['geometry'],feat['properties'][args.field]) for feat in shp),
-        out_shape=oshape,
-        transform=otrans)
+with rio.open(args.infile, 'r') as src:
+    nir = src.read_band(4)
+    oshape = src.shape
+    otrans = src.transform
 
-fields = list(set(fields))
+with fiona.open(args.inshp, 'r') as shp:
+    fields = list(set(feat['properties'][args.field] for feat in shp))
+
+with fiona.open(args.inshp, 'r') as shp:
+    rasters = features.rasterize(
+                    ((feat['geometry'], feat['properties'][args.field]) for feat in shp),
+                    out_shape=oshape,
+                    transform=otrans)
 
 out = {}
 
@@ -43,6 +42,3 @@ for i in fields:
 
 with open(args.outJSON, 'w') as ofile:
     ofile.write(json.dumps(out, indent=4))
-
-
-
