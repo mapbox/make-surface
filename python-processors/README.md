@@ -19,7 +19,7 @@ Takes an input raster, and converts into a stacked shapefile. Sort of like `gdal
 * `--w <weighting>` (default = 0.5) - optional parameter to weight classification type. 0 = quantile breaks, 1 = equal interval, anywhere between 0 and 1 weights the classification between the two
 
 * `--nodata <nodatatype>` How to treat nodata. Default = None. Valid options:
- *`min` Uses minimum value from dataset
+ * `min` Uses minimum value from dataset
  * `nodata` Uses nodata value derived from metadata (note - is many times incorrect)
  * Any float or integer value
 
