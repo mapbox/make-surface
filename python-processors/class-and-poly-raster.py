@@ -4,6 +4,7 @@ import rasterio
 from shapely.geometry import Polygon, MultiPolygon, mapping
 from fiona.crs import from_epsg
 import numpy as np
+import json
 
 parser = argparse.ArgumentParser(description='Classify and vectorize a singleband raster.')
 
@@ -46,7 +47,6 @@ else:
     print "invalid nodata value - ignoring"
 
 def classify(zArr,classes,weighting=0.5):
-    'convert crime kernel surface into classed surface for polygonization'
     outRas = np.empty(zArr.shape)
     zMax = np.nanmax(zArr)
     zMin = np.nanmin(zArr)
@@ -69,7 +69,11 @@ with rasterio.open(args.infile,'r') as src:
     inarr = src.read_band(1)
     oshape = src.shape
     oaff = src.affine
-    ocrs = src.crs['init'].split(':')[1]
+    try:
+        ocrs = src.crs['init'].split(':')[1]
+    except:
+        ocrs = 4326
+    simplest = ((src.bounds.top-src.bounds.bottom)/src.shape[0])
     if nodata == 'min':
         inarr[np.where(inarr==inarr.min())] = None
     elif nodata == 'nodata':
@@ -80,20 +84,27 @@ with rasterio.open(args.infile,'r') as src:
         inarr[np.where(inarr==nodata)] = None
     
 
-classRas, breaks = classify(inarr,10,1)
+classRas, breaks = classify(inarr,classNumber,1)
+
+print json.dumps(breaks, indent=2)
 
 schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
 
 with fiona.collection(args.outfile, "w", "ESRI Shapefile", schema, crs=from_epsg(ocrs)) as outshp:
     tRas = np.zeros(classRas.shape,dtype=np.uint8)
-    for i in range(max(breaks.keys()),0,-1):
-        tRas[np.where(classRas<=i)] = 1
-        tRas[np.where(classRas>i)] = 0
-        tRas[np.where(classRas==0)] = 0
+    for i in range(1,max(breaks.keys())+1):
+        print "Simplifying", i
+        tRas[np.where(classRas>=i)] = 1
+        tRas[np.where(classRas<i)] = 0
+        if nodata != 'none':
+            tRas[np.where(classRas==0)] = 0
         for feature, shapes in features.shapes(np.asarray(tRas,order='C'),transform=oaff):
             if shapes == 1:
                 featurelist = []
                 for f in feature['coordinates']:
-                    featurelist.append(Polygon(f))
-                poly = MultiPolygon(featurelist)
-                outshp.write({'geometry': mapping(poly),'properties': {'value': breaks[i]}})
+                    # if len(f) > 5 and i != 1:
+                    poly = Polygon(f)
+                    featurelist.append(poly.simplify(simplest, preserve_topology=True))
+                if len(featurelist) != 0:
+                    poly = MultiPolygon(featurelist)
+                    outshp.write({'geometry': mapping(poly),'properties': {'value': breaks[i]}})
