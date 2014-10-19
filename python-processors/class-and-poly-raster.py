@@ -5,6 +5,7 @@ from shapely.geometry import Polygon, MultiPolygon, mapping
 from fiona.crs import from_epsg
 import numpy as np
 import json
+from skimage.filter import gaussian_filter
 
 parser = argparse.ArgumentParser(description='Classify and vectorize a singleband raster.')
 
@@ -22,7 +23,6 @@ parser.add_argument('--w',
 
 parser.add_argument('--nodata',
                      help='Forced nodata value')
-
 
 args = parser.parse_args()
 
@@ -82,9 +82,10 @@ with rasterio.open(args.infile,'r') as src:
         pass
     else:
         inarr[np.where(inarr==nodata)] = None
-    
 
-classRas, breaks = classify(inarr,classNumber,1)
+inarr = gaussian_filter(inarr.astype(np.float64), sigma=2)
+
+classRas, breaks = classify(inarr,classNumber, classWeight)
 
 print json.dumps(breaks, indent=2)
 
@@ -102,9 +103,9 @@ with fiona.collection(args.outfile, "w", "ESRI Shapefile", schema, crs=from_epsg
             if shapes == 1:
                 featurelist = []
                 for f in feature['coordinates']:
-                    # if len(f) > 5 and i != 1:
-                    poly = Polygon(f)
-                    featurelist.append(poly.simplify(simplest, preserve_topology=True))
+                    if len(f) > 5 or f[0][0]-f[2][0] < 90:
+                        poly = Polygon(f)
+                        featurelist.append(poly.simplify(simplest, preserve_topology=True))
                 if len(featurelist) != 0:
                     poly = MultiPolygon(featurelist)
                     outshp.write({'geometry': mapping(poly),'properties': {'value': breaks[i]}})
