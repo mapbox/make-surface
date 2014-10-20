@@ -21,11 +21,11 @@ parser.add_argument('classes',
 parser.add_argument('--w',
                      help='Classification weighting - 0=quantile, 1=equal interval, weighting between')
 
-parser.add_argument('--nodata',
-                     help='Forced nodata value')
-
 parser.add_argument('--smoothing',
                      help='Sigma for raster smoothing')
+
+parser.add_argument('--nodata',
+                     help='Forced nodata value')
 
 args = parser.parse_args()
 
