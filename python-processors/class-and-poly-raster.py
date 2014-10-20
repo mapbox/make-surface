@@ -24,6 +24,9 @@ parser.add_argument('--w',
 parser.add_argument('--nodata',
                      help='Forced nodata value')
 
+parser.add_argument('--smoothing',
+                     help='Sigma for raster smoothing')
+
 args = parser.parse_args()
 
 
@@ -33,6 +36,11 @@ if args.w == None:
     classWeight = 0.5
 else:
     classWeight = float(args.w)
+
+if args.smoothing == None:
+    smoothing = None
+else:
+    smoothing = float(args.smoothing)
 
 if args.nodata == None:
     nodata = 'none'
@@ -83,11 +91,14 @@ with rasterio.open(args.infile,'r') as src:
     else:
         inarr[np.where(inarr==nodata)] = None
 
-inarr = gaussian_filter(inarr.astype(np.float64), sigma=2)
+if smoothing:
+    print 'Pre-smoothing raster w/ sigma of '+ str(smoothing)
+    inarr = gaussian_filter(inarr.astype(np.float64), sigma=smoothing)
 
 classRas, breaks = classify(inarr,classNumber, classWeight)
 
-print json.dumps(breaks, indent=2)
+for i in breaks:
+    print '[value = '+str(breaks[i])+'] { polygon-fill: @class'+ str(i) + '}'
 
 schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
 
