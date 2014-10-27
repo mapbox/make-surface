@@ -18,6 +18,9 @@ parser.add_argument('outfile',
 parser.add_argument('classes',
                     help='Number of output classes')
 
+parser.add_argument('--classfile',
+                     help='CSV file of values to classify with')
+
 parser.add_argument('--w',
                      help='Classification weighting - 0=quantile, 1=equal interval, weighting between')
 
@@ -54,6 +57,7 @@ else:
     nodata = 'none'
     print "invalid nodata value - ignoring"
 
+
 def classify(zArr,classes,weighting=0.5):
     outRas = np.empty(zArr.shape)
     zMax = np.nanmax(zArr)
@@ -68,6 +72,18 @@ def classify(zArr,classes,weighting=0.5):
         cClass = weighting*eQint+(1.0-weighting)*quant
         breaks[i+1] = cClass
         outRas[np.where(zArr>cClass)] = i+1
+    outRas[np.isnan(zArr)] = 0
+    breaks[0] = -999
+
+    return outRas.astype(np.uint8), breaks
+
+def classifyManual(zArr, classArr):
+    outRas = np.empty(zArr.shape)
+    breaks = {}
+    print "Classifying into"
+    for i in range(len(classArr)):
+        breaks[i+1] = float(classArr[i])
+        outRas[np.where(zArr>classArr[i])] = i+1
     outRas[np.isnan(zArr)] = 0
     breaks[0] = -999
 
@@ -95,7 +111,12 @@ if smoothing:
     print 'Pre-smoothing raster w/ sigma of '+ str(smoothing)
     inarr = gaussian_filter(inarr.astype(np.float64), sigma=smoothing)
 
-classRas, breaks = classify(inarr,classNumber, classWeight)
+if args.classfile:
+    with open(args.classfile, 'r') as ofile:
+        classifiers = ofile.read().split(',')
+        classRas, breaks = classifyManual(inarr, np.array(classifiers).astype(inarr.dtype))
+else:
+    classRas, breaks = classify(inarr,classNumber, classWeight)
 
 for i in breaks:
     print '[value = '+str(breaks[i])+'] { polygon-fill: @class'+ str(i) + '}'
