@@ -74,7 +74,6 @@ def classify(zArr,classes,weighting=0.5):
         outRas[np.where(zArr>cClass)] = i+1
     outRas[np.isnan(zArr)] = 0
     breaks[0] = -999
-
     return outRas.astype(np.uint8), breaks
 
 def classifyManual(zArr, classArr):
@@ -86,14 +85,12 @@ def classifyManual(zArr, classArr):
         outRas[np.where(zArr>classArr[i])] = i+1
     outRas[np.isnan(zArr)] = 0
     breaks[0] = -999
-
     return outRas.astype(np.uint8), breaks
 
 with rasterio.open(args.infile,'r') as src:
     inarr = src.read_band(1)
     oshape = src.shape
     oaff = src.affine
-    print src.crs
     try:
         ocrs = src.crs['init'].split(':')[1]
     except:
@@ -137,7 +134,7 @@ with fiona.collection(args.outfile, "w", "ESRI Shapefile", schema, crs=from_epsg
             if shapes == 1:
                 featurelist = []
                 for f in feature['coordinates']:
-                    if len(f) > 5 or f[0][0]-f[2][0] < 90:
+                    if len(f) > 5 or f[0][0]-f[2][0] > 90:
                         poly = Polygon(f)
                         featurelist.append(poly.simplify(simplest, preserve_topology=True))
                 if len(featurelist) != 0:
