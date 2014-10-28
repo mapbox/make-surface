@@ -5,13 +5,7 @@ setup(
     version='1.0',
     py_modules=['surfacevectorize, runner'],
     install_requires=[
-        'Click',
-        'numpy',
-        'fiona',
-        'rasterio',
-        'shapely',
-        'skimage',
-        'json'
+        'Click'
     ],
     entry_points='''
         [console_scripts]
