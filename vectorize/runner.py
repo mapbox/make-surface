@@ -72,7 +72,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     with fiona.collection(outfile, "w", "ESRI Shapefile", schema, crs=from_epsg(ocrs)) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         for i in range(1, max(breaks.keys()) + 1):
-            click.echo("Simplifying" + str(i))
+            click.echo("Simplifying " + str(i))
             tRas[np.where(classRas>=i)] = 1
             tRas[np.where(classRas<i)] = 0
             if nodata:
@@ -81,7 +81,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                 if shapes == 1:
                     featurelist = []
                     for f in feature['coordinates']:
-                        if len(f) > 5 or f[0][0] - f[2][0] > 90:
+                        if len(f) > 5 or f[0][0] - f[2][0] < 90:
                             poly = Polygon(f)
                             featurelist.append(poly.simplify(simplest, preserve_topology=True))
                     if len(featurelist) != 0:
