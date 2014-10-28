@@ -80,8 +80,8 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             for feature, shapes in features.shapes(np.asarray(tRas,order='C'),transform=oaff):
                 if shapes == 1:
                     featurelist = []
-                    for f in feature['coordinates']:
-                        if len(f) > 5 or f[0][0] - f[2][0] < 90:
+                    for c, f in enumerate(feature['coordinates']):
+                        if len(f) > 5 or c == 0:
                             poly = Polygon(f)
                             featurelist.append(poly.simplify(simplest, preserve_topology=True))
                     if len(featurelist) != 0:
