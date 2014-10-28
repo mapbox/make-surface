@@ -93,6 +93,7 @@ with rasterio.open(args.infile,'r') as src:
     inarr = src.read_band(1)
     oshape = src.shape
     oaff = src.affine
+    print src.crs
     try:
         ocrs = src.crs['init'].split(':')[1]
     except:
@@ -106,6 +107,7 @@ with rasterio.open(args.infile,'r') as src:
         pass
     else:
         inarr[np.where(inarr==nodata)] = None
+
 
 if smoothing:
     print 'Pre-smoothing raster w/ sigma of '+ str(smoothing)
