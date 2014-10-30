@@ -1,5 +1,7 @@
 import click
-import runner
+
+import rastersurface
+
 
 @click.command()
 @click.argument('infile', type=str)
@@ -16,8 +18,7 @@ import runner
     help='Manually defined nodata value - can be any number or "min"')
 def cli(infile, outfile, classes, classfile, weight, smoothing, nodata):
     """
-    Vectorize a raster\n
-    surfacevectorize <input raster> <output shapefile> <options>
+    Vectorize a raster
     """
     ## Input handling
     if nodata:
@@ -28,4 +29,4 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata):
         if type(nodata) != float and nodata != 'min' and nodata != 'nodata':
             click.echo('Invalid nodata value of ' + str(nodata) + ' - ignoring')
             nodata = None
-    runner.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing)
+    rastersurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing)
