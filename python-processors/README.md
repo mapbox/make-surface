@@ -1,6 +1,14 @@
 # python-processors
 
-A few basic surface creation routines using `rasterio`, `fiona`, and `shapely`
+A few basic surface creation routines using: `rasterio`, `fiona`, and `shapely`
+
+Dependencies:
+
+- rasterio:
+- fiona
+- shapely
+- scipy
+- scikit-image
 
 ## class-and-poly-raster.py
 
