@@ -1,0 +1,5 @@
+rasterio
+fiona
+shapely
+scipy
+scikit-image
