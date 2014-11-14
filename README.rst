@@ -28,6 +28,12 @@ Usage
 
 Takes an input raster, and converts into a stacked shapefile. Sort of like :console:`gdal polygonize` with more control. Also prints out a cartocss template for stylizing (one style for each class).
 
+Turns this:
+.. image:: https://cloud.githubusercontent.com/assets/5084513/5039999/fb1a75f4-6b5b-11e4-9cf8-888ace189c8c.png
+
+Into this:
+.. image:: https://cloud.githubusercontent.com/assets/5084513/5040006/29fe36c6-6b5c-11e4-8ad5-07c3edb6c66c.png
+
 :console:`makesurface <input raster> <output shapefile> [OPTIONS]`
 
 Arguments
