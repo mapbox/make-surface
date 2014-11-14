@@ -1,8 +1,10 @@
-# python-processors
+makesurface
+===========
 
 A few basic surface creation routines using: `rasterio`, `fiona`, and `shapely`
 
-## Installation
+Installation
+------------
 
 1. Install dependencies:
 
@@ -18,19 +20,20 @@ A few basic surface creation routines using: `rasterio`, `fiona`, and `shapely`
 
 3. CD into `make-surface` then pip install .
 
-## Usage
+Usage
+------
 
 Takes an input raster, and converts into a stacked shapefile. Sort of like `gdal polygonize` with more control. Also prints out a cartocss template for stylizing (one style for each class).
 
 `makesurface <input raster> <output shapefile> [OPTIONS]`
 
-### Arguments
+Arguments
 
 * `<input raster>` Input single-band raster to class and vectorize
 
 * `<output shapefile>` Output shapefile to create - output will be "stacked", with lower values including areas of higher values
 
-### Options
+Options
 
 * `--classfile <TEXT>` - Filepath to one-line CSV of manually defined break values
 
