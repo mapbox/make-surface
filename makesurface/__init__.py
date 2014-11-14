@@ -34,7 +34,7 @@ def classifyManual(zArr, classArr):
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, cartoCSS):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(1)
         oshape = src.shape
@@ -64,8 +64,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     else:
         classRas, breaks = classify(inarr, classes, weight)
 
-    for i in breaks:
-        click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
+    if cartoCSS:
+        for i in breaks:
+            click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
     schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
 
