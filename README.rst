@@ -25,7 +25,7 @@ Installation
 
 Alternatively, install straight from GitHub:
 
-.. code-block:: console
+.. code-block:: bash
 
    pip install -e git+git@github.com:mapbox/make-surface.git#egg=makesurface
 
