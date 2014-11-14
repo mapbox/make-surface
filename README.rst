@@ -21,7 +21,13 @@ Installation
 
 :console:`git clone git@github.com:mapbox/make-surface.git`
 
-3. CD into :console:`make-surface` then pip install .
+3. CD into :console:`make-surface` then `pip install -e .`
+
+Alternatively, install straight from GitHub:
+
+.. code-block:: console
+
+   pip install -e git+git@github.com:mapbox/make-surface.git#egg=makesurface
 
 Usage
 ------
