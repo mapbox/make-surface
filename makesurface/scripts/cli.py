@@ -17,7 +17,8 @@ import makesurface
     help='Sigma for optional gaussian smoothing (default = no smoothing)')
 @click.option('--nodata', default=None,
     help='Manually defined nodata value - can be any number or "min"')
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata):
+@click.option('--carto', is_flag=True)
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, carto):
     """
     Vectorize a raster
     """
@@ -30,4 +31,4 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata):
         if type(nodata) != float and nodata != 'min' and nodata != 'nodata':
             click.echo('Invalid nodata value of ' + str(nodata) + ' - ignoring')
             nodata = None
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, carto)

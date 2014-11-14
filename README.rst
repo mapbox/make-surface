@@ -56,4 +56,6 @@ Options
 
 * :console:`--nodata <ANY NUMBER OR "min">` (default = nodata from metadata) - Manually defined nodata value - can be any number or "min"
 
+* :console:`--carto` (default = none) - Flag to include stdout printing of cartoCSS for classes
+
 * :console:`--help` Show this message and exit;
