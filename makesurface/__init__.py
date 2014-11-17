@@ -34,9 +34,9 @@ def classifyManual(zArr, classArr):
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, cartoCSS):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS):
     with rasterio.open(infile, 'r') as src:
-        inarr = src.read_band(1)
+        inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
         try:

@@ -33,4 +33,4 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, ca
         if type(nodata) != float and nodata != 'min' and nodata != 'nodata':
             click.echo('Invalid nodata value of ' + str(nodata) + ' - ignoring')
             nodata = None
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, carto)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto)
