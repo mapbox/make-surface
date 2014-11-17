@@ -10,6 +10,4 @@ class rasterIndexer:
     def getIndices(self, x, y):
         return [int(((1 - y - self.bounds.bottom) / self.yRange) * self.shape[0]),
                 int(((x - self.bounds.left) / self.xRange) * self.shape[1])]
-
-def doThis(hi):
-    return 'Hi %s' % (hi)
+            
