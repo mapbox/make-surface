@@ -7,18 +7,20 @@ import makesurface
 @click.command()
 @click.argument('infile', type=str)
 @click.argument('outfile', type=str)
+@click.option('--band', default=1,
+    help='Input band to vectorize [default = 1]')
 @click.option('--classes', default=10,
-    help='Number of output classes (ignored if class file specified)')
+    help='Number of output classes (ignored if class file specified) [default = 10]')
 @click.option('--classfile',
-    help='One-line CSV of break values')
+    help='One-line CSV of break values [default = None]')
 @click.option('--weight', default=0.5,
-    help='Weighting between equal interval and quantile breaks')
+    help='Weighting between equal interval and quantile breaks [default = 0.5]')
 @click.option('--smoothing', type=float,
-    help='Sigma for optional gaussian smoothing (default = no smoothing)')
+    help='Sigma for optional gaussian smoothing [default = None]')
 @click.option('--nodata', default=None,
-    help='Manually defined nodata value - can be any number or "min"')
+    help='Manually defined nodata value - can be any number or "min" [default = None]')
 @click.option('--carto', is_flag=True)
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, carto):
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto):
     """
     Vectorize a raster
     """
