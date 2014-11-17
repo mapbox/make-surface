@@ -20,10 +20,13 @@ import makesurface
 @click.option('--nodata', default=None,
     help='Manually defined nodata value - can be any number or "min" [default = None]')
 @click.option('--carto', is_flag=True)
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto):
+@click.option('--grib2', is_flag=True,
+    help='Flag for processing of 0 - 360 grib2 rasters')
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, grib2):
     """
     Vectorize a raster
     """
+    click.echo(grib2)
     ## Input handling
     if nodata:
         try:
@@ -33,4 +36,4 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, ca
         if type(nodata) != float and nodata != 'min' and nodata != 'nodata':
             click.echo('Invalid nodata value of ' + str(nodata) + ' - ignoring')
             nodata = None
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, grib2)

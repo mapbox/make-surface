@@ -4,6 +4,7 @@ from shapely.geometry import Polygon, MultiPolygon, mapping
 from fiona.crs import from_epsg
 import numpy as np
 from skimage.filter import gaussian_filter
+from scripts import tools
 
 def classify(zArr, classes, weighting):
     outRas = np.empty(zArr.shape)
@@ -34,7 +35,7 @@ def classifyManual(zArr, classArr):
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(band)
         oshape = src.shape
@@ -52,6 +53,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             pass
         else:
             inarr[np.where(inarr == nodata)] = None
+
+    if grib2:
+        inarr, oaff = tools.handleGrib2(inarr, oaff)
 
     if smoothing:
         click.echo('Pre-smoothing raster w/ sigma of '+ str(smoothing))
