@@ -40,10 +40,12 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
-        try:
-            ocrs = src.crs['init'].split(':')[1]
-        except:
-            ocrs = 4326
+        if 'init' in src.crs:
+            ocrs = from_epsg(src.crs['init'].split(':')[1])
+        elif 'a' in src.crs:
+            ocrs = src.crs
+        else:
+            ocrs = from_epsg(4326)
         simplest = ((src.bounds.top - src.bounds.bottom) / src.shape[0])
         if nodata == 'min':
             inarr[np.where(inarr == inarr.min())] = None
@@ -74,7 +76,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
 
-    with fiona.collection(outfile, "w", "ESRI Shapefile", schema, crs=from_epsg(ocrs)) as outshp:
+    with fiona.collection(outfile, "w", "ESRI Shapefile", schema, crs=ocrs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         for i in range(1, max(breaks.keys()) + 1):
             click.echo("Simplifying " + str(i))
