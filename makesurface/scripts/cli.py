@@ -26,7 +26,6 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, ca
     """
     Vectorize a raster
     """
-    click.echo(grib2)
     ## Input handling
     if nodata:
         try:
