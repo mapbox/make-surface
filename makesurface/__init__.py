@@ -7,6 +7,7 @@ from skimage.filter import gaussian_filter
 from scripts import tools
 import matplotlib.pyplot as plot
 from scipy.ndimage import zoom
+from scipy.ndimage.filters import median_filter
 
 
 def classify(zArr, classes, weighting):
@@ -61,36 +62,38 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
-        if 'init' in src.crs:
-            ocrs = from_epsg(src.crs['init'].split(':')[1])
-        elif 'a' in src.crs:
-            ocrs = src.crs
-        else:
-            ocrs = from_epsg(4326)
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
+        
+
+        if grib2:
+            inarr, oaff = tools.handleGrib2(inarr, oaff)
+
         if nodata == 'min':
-            inarr[np.where(inarr == inarr.min())] = None
-        elif nodata == 'nodata':
-            inarr[np.where(inarr == src.nodatavals[0])] = None
-        elif nodata == None:
-            pass
-        else:
-            inarr[np.where(inarr == nodata)] = None
-    
-    zoomReg = zoom(inarr.data, 3, order=0)
-    zoomed = zoom(inarr.data, 3, order=1)
-    zoomMask = zoom(inarr.mask, 3, order=0)
-    zoomed[np.where(zoomed > inarr.max())] = inarr.max()
-    zoomed[np.where(zoomed < inarr.min())] = inarr.min()
-    inarr = np.ma.array(zoomed, mask=zoomMask)
-    oaff = tools.resampleAffine(oaff, 3)
+            maskArr = np.zeros(inarr.shape, dtype=np.bool)
+            maskArr[np.where(inarr == inarr.min())] = True
+            inarr = np.ma.array(inarr, mask=maskArr)
+            del maskArr
+        elif type(nodata) == int or type(nodata) == float:
+            maskArr = np.zeros(inarr.shape, dtype=np.bool)
+            maskArr[np.where(inarr == nodata)] = True
+            inarr = np.ma.array(inarr, mas=maskArr)
+            del maskArr
+        elif np.isnan(src.meta['nodata']):
+            maskArr = np.zeros(inarr.shape, dtype=np.bool)
+            inarr = np.ma.array(inarr, mask=maskArr)
+            del maskArr
 
-    if grib2:
-        inarr, oaff = tools.handleGrib2(inarr, oaff)
-
-    if smoothing:
-        click.echo('Pre-smoothing raster w/ sigma of '+ str(smoothing))
-        inarr = gaussian_filter(inarr.astype(np.float64), sigma=smoothing)
+    if smoothing and smoothing > 1:
+        zoomReg = zoom(inarr.data, smoothing, order=0)
+        zoomed = zoom(inarr.data, smoothing, order=1)
+        zoomMask = zoom(inarr.mask, smoothing, order=0)
+        zoomed = median_filter(zoomed, size=2)
+        zoomed[np.where(zoomed > inarr.max())] = inarr.max()
+        zoomed[np.where(zoomed < inarr.min())] = inarr.min()
+        inarr = np.ma.array(zoomed, mask=zoomMask)
+        oaff = tools.resampleAffine(oaff, smoothing)
+    else:
+        smoothing = 1
 
     if classfile:
         with open(classfile, 'r') as ofile:
@@ -105,20 +108,20 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
 
-    with fiona.collection(outfile, "w", "ESRI Shapefile", schema, crs=ocrs) as outshp:
+    with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         for i in range(1, max(breaks.keys()) + 1):
             click.echo("Simplifying " + str(breaks[i]))
             tRas[np.where(classRas>=i)] = 1
             tRas[np.where(classRas<i)] = 0
             if nodata:
-                tRas[np.where(classRas == 0)] = 100
+                tRas[np.where(classRas == 0)] = 0
             for feature, shapes in features.shapes(np.asarray(tRas,order='C'),transform=oaff):
                 if shapes == 1:
                     featurelist = []
                     for c, f in enumerate(feature['coordinates']):
                         if len(f) > 5 or c == 0:
-                            poly = Polygon(f)#.simplify(simplest, preserve_topology=True)
+                            poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
                             featurelist.append(poly)
                     if len(featurelist) != 0:
                         oPoly = MultiPolygon(featurelist)
