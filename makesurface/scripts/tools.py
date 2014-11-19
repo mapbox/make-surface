@@ -20,6 +20,12 @@ def handleGrib2(gribArr, otrans):
     fixGrib = np.hstack((gribArr[0:-1, oshape[1] / 2:-1],gribArr[0:-1, 0:oshape[1] / 2]))
     return fixGrib, outAff
 
+def resampleAffine(otrans, factor):
+    from rasterio import Affine
+    return Affine(otrans.a / float(factor),otrans.b,otrans.c,
+             otrans.d,otrans.e / float(factor), otrans.f)
+
 if __name__ == '__main__':
     rasterIndexer()
     handleGrib2()
+    resampleAffine
