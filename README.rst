@@ -15,7 +15,6 @@ Installation
 - :console:`fiona`
 - :console:`shapely`
 - :console:`scipy`
-- :console:`scikit-image`
 
 2. Clone this repo:
 
