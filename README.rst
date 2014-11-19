@@ -54,16 +54,16 @@ Options
 
 * :console:`--classfile <TEXT>` - Filepath to one-line CSV of manually defined break values;
 
-* :console:`--classes <INTEGER>` (default = 10) - Number of sections to vectorize into; Ignored if `classfile` specified;
+* :console:`--classes <INTEGER>` (default = 10) - Number of sections to vectorize into, OR 'all' to vectorize into rounded input values; Ignored if `classfile` specified;
 
-* :console:`--weight <FLOAT>` (default = 0.5) - parameter to weight classification type; 0 = quantile breaks, 1 = equal interval, anywhere between 0 and 1 weights the classification between the two; Ignored if `classfile` specified;
+* :console:`--weight <FLOAT>` (default = 1) - parameter to weight classification type; 0 = quantile breaks, 1 = equal interval, anywhere between 0 and 1 weights the classification between the two; Ignored if `classfile` specified;
 
-* :console:`--smoothing <FLOAT>` (default = no smoothing) - optional parameter that defines the kernel sigma used in a gaussian smoothing operation prior to classification; If none, no smoothing is performed;
+* :console:`--smoothing <FLOAT>` (default = no smoothing) - optional parameter that defines the upsampling and smoothing prior to classification; If none, no upsampling / smoothing is performed;
 
 * :console:`--nodata <ANY NUMBER OR "min">` (default = nodata from metadata) - Manually defined nodata value - can be any number or "min";
 
-* :console:`--carto` (default = none) - Flag to include stdout printing of cartoCSS for classes;
+* :console:`--carto` (default = none) - Flag to include stdout printing of cartoCSS for each class;
 
-* :console:`--grib2` (default = none) - Flag to handle :console:`.grib2` files (bounds of 0 to 360);
+* :console:`--grib2` (default = none) - Flag to handle :console:`.grib2` files with bounds of 0 to 360;
 
 * :console:`--help` Show this message and exit;

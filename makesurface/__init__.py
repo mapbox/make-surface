@@ -14,22 +14,24 @@ def classify(zArr, classes, weighting):
     outRas = np.zeros(zArr.shape)
     zMax = np.max(zArr)
     zMin = np.min(zArr)
+    tempArray = np.copy(zArr.data)
+    tempArray[np.where(zArr.mask == True)] = None
     zRange = zMax-zMin
-    click.echo(zRange)
     zInterval = zRange / float(classes)
     breaks = {}
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
     for i in range(0, classes):
         eQint = i * zInterval + zMin
-        quant = np.percentile(zArr[np.isfinite(zArr)], i/float(classes) * 100)
+        quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
         cClass = weighting * eQint + (1.0 - weighting) * quant
+        click.echo(quant)
         breaks[i + 1] = cClass
         outRas[np.where(zArr > cClass)] = i + 1
     outRas[np.where(zArr.mask == True)] = 0
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
-def classifyAll(zArr, classes, weighting):
+def classifyAll(zArr):
     outRas = np.zeros(zArr.shape)
     zMax = np.max(zArr)
     zMin = np.min(zArr)
@@ -57,13 +59,23 @@ def classifyManual(zArr, classArr):
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
+def zoomSmooth(inArr, smoothing, inAffine):
+    zoomReg = zoom(inArr.data, smoothing, order=0)
+    zoomed = zoom(inArr.data, smoothing, order=1)
+    zoomMask = zoom(inArr.mask, smoothing, order=0)
+    zoomed = median_filter(zoomed, size=3)
+    zoomed[np.where(zoomed > inArr.max())] = inArr.max()
+    zoomed[np.where(zoomed < inArr.min())] = inArr.min()
+    inArr = np.ma.array(zoomed, mask=zoomMask)
+    oaff = tools.resampleAffine(inAffine, smoothing)
+    return inArr, oaff
+
 def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
-        
 
         if grib2:
             inarr, oaff = tools.handleGrib2(inarr, oaff)
@@ -78,27 +90,26 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             maskArr[np.where(inarr == nodata)] = True
             inarr = np.ma.array(inarr, mas=maskArr)
             del maskArr
-        elif np.isnan(src.meta['nodata']):
+        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']):
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             inarr = np.ma.array(inarr, mask=maskArr)
             del maskArr
-
     if smoothing and smoothing > 1:
-        zoomReg = zoom(inarr.data, smoothing, order=0)
-        zoomed = zoom(inarr.data, smoothing, order=1)
-        zoomMask = zoom(inarr.mask, smoothing, order=0)
-        zoomed = median_filter(zoomed, size=2)
-        zoomed[np.where(zoomed > inarr.max())] = inarr.max()
-        zoomed[np.where(zoomed < inarr.min())] = inarr.min()
-        inarr = np.ma.array(zoomed, mask=zoomMask)
-        oaff = tools.resampleAffine(oaff, smoothing)
+        inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
     else:
         smoothing = 1
+
+    try:
+        classes = int(classes)
+    except:
+        pass
 
     if classfile:
         with open(classfile, 'r') as ofile:
             classifiers = ofile.read().split(',')
             classRas, breaks = classifyManual(inarr, np.array(classifiers).astype(inarr.dtype))
+    elif classes == 'all':
+        classRas, breaks = classifyAll(inarr)
     else:
         classRas, breaks = classify(inarr, classes, weight)
 
@@ -110,8 +121,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
-        for i in range(1, max(breaks.keys()) + 1):
-            click.echo("Simplifying " + str(breaks[i]))
+        breakNum = max(breaks.keys())
+        click.echo("Simplifying: ", nl=False)
+        for i in range(1, breakNum + 1):
+            click.echo("%d, " % (breaks[i]), nl=False)
             tRas[np.where(classRas>=i)] = 1
             tRas[np.where(classRas<i)] = 0
             if nodata:
