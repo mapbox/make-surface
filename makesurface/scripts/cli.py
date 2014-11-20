@@ -26,8 +26,5 @@ def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, ca
     """
     Vectorize a raster
     """
-    try:
-        classes = int(classes)
-    except:
-        pass
+
     makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, grib2)
