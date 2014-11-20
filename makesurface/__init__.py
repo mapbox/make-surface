@@ -80,7 +80,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         #simplification threshold
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
-        #handle 0 - 360 extent /grib2 files
+        #handle 0 - 360 extent .grib2 files
         if grib2:
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
@@ -101,7 +101,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             del maskArr
 
     if smoothing and smoothing > 1:
-        # upsample and updata affine
+        # upsample and update affine
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
     else:
         smoothing = 1
