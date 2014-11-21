@@ -102,6 +102,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     if smoothing and smoothing > 1:
         # upsample and update affine
+        # global gribs have to be upsampled x 2 already
+        if grib2:
+            smoothing -=1
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
     else:
         smoothing = 1
