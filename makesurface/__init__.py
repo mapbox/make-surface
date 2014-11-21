@@ -41,10 +41,12 @@ def classifyAll(inArr):
     zInterval = zRange / float(classes)
     breaks = {}
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
-    for i in range(0, classes):
+    outRas += 1
+    breaks[1] = int(zMin)
+    for i in range(1, classes):
         cClass = int(i * zInterval + zMin)
         breaks[i + 1] = cClass
-        outRas[np.where(inArr > cClass)] = i + 1
+        outRas[np.where(inArr >= cClass)] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
@@ -55,7 +57,7 @@ def classifyManual(inArr, classArr):
     click.echo("Manually Classifiying")
     for i in range(len(classArr)):
         breaks[i + 1] = float(classArr[i])
-        outRas[np.where(inArr > classArr[i])] = i + 1
+        outRas[np.where(inArr >= classArr[i])] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
