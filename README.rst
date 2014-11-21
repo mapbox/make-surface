@@ -1,8 +1,6 @@
 makesurface
 ===========
 
-..image:: https://cloud.githubusercontent.com/assets/5084513/5135375/69635a60-70cc-11e4-9a31-0d7bf34003df.gif
-
 A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
 
 Installation
@@ -29,6 +27,12 @@ Alternatively, install straight from GitHub:
 .. code-block:: bash
 
    pip install -e git+git@github.com:mapbox/make-surface.git#egg=makesurface
+
+Or, install from PyPI
+
+.. code-block:: bash
+
+pip install makesurface --pre
 
 Usage
 ------
