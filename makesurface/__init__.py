@@ -41,7 +41,9 @@ def classifyAll(inArr):
     zInterval = zRange / float(classes)
     breaks = {}
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
-    for i in range(0, classes):
+    outRas += 1
+    breaks[1] = int(zMin)
+    for i in range(1, classes):
         cClass = int(i * zInterval + zMin)
         breaks[i + 1] = cClass
         outRas[np.where(inArr >= cClass)] = i + 1
