@@ -28,6 +28,12 @@ Alternatively, install straight from GitHub:
 
    pip install -e git+git@github.com:mapbox/make-surface.git#egg=makesurface
 
+Or, install from PyPI
+
+.. code-block:: bash
+
+pip install makesurface --pre
+
 Usage
 ------
 

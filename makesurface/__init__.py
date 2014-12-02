@@ -7,7 +7,6 @@ from scripts import tools
 from scipy.ndimage import zoom
 from scipy.ndimage.filters import median_filter
 
-
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape)
     zMax = np.max(inArr)
@@ -41,10 +40,12 @@ def classifyAll(inArr):
     zInterval = zRange / float(classes)
     breaks = {}
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
-    for i in range(0, classes):
+    outRas += 1
+    breaks[1] = int(zMin)
+    for i in range(1, classes):
         cClass = int(i * zInterval + zMin)
         breaks[i + 1] = cClass
-        outRas[np.where(inArr > cClass)] = i + 1
+        outRas[np.where(inArr >= cClass)] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
@@ -55,7 +56,7 @@ def classifyManual(inArr, classArr):
     click.echo("Manually Classifiying")
     for i in range(len(classArr)):
         breaks[i + 1] = float(classArr[i])
-        outRas[np.where(inArr > classArr[i])] = i + 1
+        outRas[np.where(inArr >= classArr[i])] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
     breaks[0] = -999
     return outRas.astype(np.uint8), breaks
@@ -80,11 +81,12 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         #simplification threshold
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
-        #handle 0 - 360 extent /grib2 files
+        #handle 0 - 360 extent .grib2 files
         if grib2:
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
         #handle dif nodata situations
+
         if nodata == 'min':
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             maskArr[np.where(inarr == inarr.min())] = True
@@ -101,7 +103,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             del maskArr
 
     if smoothing and smoothing > 1:
-        # upsample and updata affine
+        # upsample and update affine
+        # global gribs have to be upsampled x 2 already
+        if grib2:
+            smoothing -=1
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
     else:
         smoothing = 1
