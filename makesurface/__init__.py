@@ -7,7 +7,6 @@ from scripts import tools
 from scipy.ndimage import zoom
 from scipy.ndimage.filters import median_filter
 
-
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape)
     zMax = np.max(inArr)
