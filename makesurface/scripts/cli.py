@@ -24,8 +24,9 @@ import makesurface
     help='Flag for processing of 0 - 360 grib2 rasters')
 @click.option('--axonometrize', type=float, default=None,
     help='EXPERIMENTAL')
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, grib2):
+@click.option('--nosimple', is_flag=True)
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, grib2, axonometrize, nosimple):
     """
     Vectorize a raster
     """
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, grib2)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, grib2, axonometrize, nosimple)

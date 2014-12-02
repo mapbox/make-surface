@@ -71,7 +71,7 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize, nosimple):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(band)
         oshape = src.shape
@@ -143,7 +143,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                             if axonometrize:
                                 f = np.array(f)
                                 f[:,1] += (axonometrize * breaks[i])
-                            poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
+                            if nosimple:
+                                 poly = Polygon(f)
+                            else:
+                                poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
                             featurelist.append(poly)
                     if len(featurelist) != 0:
                         oPoly = MultiPolygon(featurelist)
