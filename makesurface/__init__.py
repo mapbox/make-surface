@@ -7,7 +7,6 @@ from scripts import tools
 from scipy.ndimage import zoom
 from scipy.ndimage.filters import median_filter
 
-
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape)
     zMax = np.max(inArr)
@@ -73,7 +72,7 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize, nosimple):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(band)
         oshape = src.shape
@@ -87,6 +86,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
         #handle dif nodata situations
+
         if nodata == 'min':
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             maskArr[np.where(inarr == inarr.min())] = True
@@ -145,7 +145,13 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                     featurelist = []
                     for c, f in enumerate(feature['coordinates']):
                         if len(f) > 5 or c == 0:
-                            poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
+                            if axonometrize:
+                                f = np.array(f)
+                                f[:,1] += (axonometrize * breaks[i])
+                            if nosimple:
+                                 poly = Polygon(f)
+                            else:
+                                poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
                             featurelist.append(poly)
                     if len(featurelist) != 0:
                         oPoly = MultiPolygon(featurelist)
