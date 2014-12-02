@@ -87,6 +87,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
         #handle dif nodata situations
+
         if nodata == 'min':
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             maskArr[np.where(inarr == inarr.min())] = True

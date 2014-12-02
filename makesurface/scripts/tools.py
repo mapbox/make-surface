@@ -27,7 +27,19 @@ def handleGrib2(gribArr, otrans):
     fixGrib = np.hstack((gribArr[:, oshape[1] / 2 + 1:oshape[1]],gribArr[:, 0:oshape[1] / 2 + 1]))
     return fixGrib, outAff
 
+def zoomSmooth(inArr, smoothing, inAffine):
+    zoomReg = zoom(inArr.data, smoothing, order=0)
+    zoomed = zoom(inArr.data, smoothing, order=1)
+    zoomMask = zoom(inArr.mask, smoothing, order=0)
+    zoomed[np.where(zoomed > inArr.max())] = inArr.max()
+    zoomed[np.where(zoomed < inArr.min())] = inArr.min()
+    inArr = np.ma.array(zoomed, mask=zoomMask)
+    oaff = tools.resampleAffine(inAffine, smoothing)
+    del zoomed, zoomMask
+    return inArr, oaff
+
 if __name__ == '__main__':
     rasterIndexer()
     handleGrib2()
-    resampleAffine
+    resampleAffine()
+    zoomSmooth()
