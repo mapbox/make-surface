@@ -1,13 +1,20 @@
 makesurface
 ===========
 
-A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
+.. code-block:: bash
+                    _   _              _     
+     ___ ___   ___ | | | |_ ___   ___ | |___ 
+    / __/ _ \ / _ \| | | __/ _ \ / _ \| / __|
+   | (_| (_) | (_) | | | || (_) | (_) | \__ \
+    \___\___/ \___/|_|  \__\___/ \___/|_|___/
 
-Installation
-------------
+A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
 
 .. role:: console(code)
    :language: console
+
+Installation
+------------
 
 1. Install dependencies:
 
