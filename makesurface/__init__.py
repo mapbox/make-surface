@@ -5,12 +5,14 @@ from fiona.crs import from_epsg
 import numpy as np
 from scripts import tools
 from scipy.ndimage import zoom
-from scipy.ndimage.filters import median_filter
+from scipy.ndimage.filters import median_filter, maximum_filter, gaussian_filter
+import matplotlib.pyplot as plot
 
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape)
     zMax = np.max(inArr)
     zMin = np.min(inArr)
+    print zMax
     if weighting == 1:
         tempArray = np.zeros(1)
     else:
@@ -77,6 +79,12 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
+        tm = inarr.mask
+        inarr = inarr.data
+
+        inarr[np.where(tm == True)] = 0.0
+
+        inarr = gaussian_filter(inarr, 1)
 
         #simplification threshold
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
@@ -85,8 +93,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         if grib2:
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
-        #handle dif nodata situations
+        print hasattr(inarr, 'mask')
 
+        #handle dif nodata situations
+        nibbleMask = True
         if nodata == 'min':
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             maskArr[np.where(inarr == inarr.min())] = True
@@ -97,10 +107,14 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             maskArr[np.where(inarr == nodata)] = True
             inarr = np.ma.array(inarr, mas=maskArr)
             del maskArr
-        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']):
+        elif (src.meta['nodata'] == None or np.isnan(src.meta['nodata'])):# and hasattr(inarr, 'mask') != False
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             inarr = np.ma.array(inarr, mask=maskArr)
+            print 'naw bae'
             del maskArr
+
+        # if nibbleMask:
+        #     inarr.mask = maximum_filter(inarr.mask, size=3)
 
     if smoothing and smoothing > 1:
         # upsample and update affine
@@ -110,6 +124,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
     else:
         smoothing = 1
+
+    plot.imshow(inarr[0:200, 0:200])
+    plot.show()
 
     if classfile:
         with open(classfile, 'r') as ofile:
