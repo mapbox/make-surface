@@ -20,22 +20,13 @@ def handleGrib2(gribArr, otrans):
     from rasterio import Affine
     import numpy as np
     from scipy.ndimage import zoom
-    from scipy.ndimage.filters import maximum_filter
-    masked = False
-    if hasattr(gribArr, 'mask') == True:
-        masked = True
-        fixMask = maximum_filter(gribArr.mask, size=3)
-        fixMask = zoom(fixMask, 2, order=0)
-        oshape = fixMask.shape
-        fixMask = np.hstack((fixMask[:, oshape[1] / 2 + 1:oshape[1]], fixMask[:, 0:oshape[1] / 2 + 1]))
 
     gribArr = zoom(gribArr, 2, order=1)
     outAff = Affine(otrans.a / 2.0, otrans.b,otrans.c - 180.0 + (otrans.a / 2.0),
              otrans.d,otrans.e / 2.0, otrans.f)
     oshape = gribArr.shape
     fixGrib = np.hstack((gribArr[:, oshape[1] / 2 + 1:oshape[1]],gribArr[:, 0:oshape[1] / 2 + 1]))
-    if masked:
-        fixGrib = np.ma.array(fixGrib, mask=fixMask)
+
     return fixGrib, outAff
 
 def zoomSmooth(inArr, smoothing, inAffine):
