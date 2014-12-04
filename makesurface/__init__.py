@@ -5,12 +5,14 @@ from fiona.crs import from_epsg
 import numpy as np
 from scripts import tools
 from scipy.ndimage import zoom
-from scipy.ndimage.filters import median_filter
+from scipy.ndimage.filters import median_filter, maximum_filter, gaussian_filter
+import matplotlib.pyplot as plot
 
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape)
     zMax = np.max(inArr)
     zMin = np.min(inArr)
+
     if weighting == 1:
         tempArray = np.zeros(1)
     else:
@@ -72,11 +74,16 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize, nosimple):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize, nosimple, setNoData, nibbleMask):
     with rasterio.open(infile, 'r') as src:
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
+        if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
+            inarr[np.where(inarr.mask == True)] = setNoData
+            nodata = True
+        elif grib2 and hasattr(inarr, 'mask'):
+            nodata = True
 
         #simplification threshold
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
@@ -97,10 +104,13 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             maskArr[np.where(inarr == nodata)] = True
             inarr = np.ma.array(inarr, mas=maskArr)
             del maskArr
-        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']):
+        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']) or nodata:# and hasattr(inarr, 'mask') != False
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             inarr = np.ma.array(inarr, mask=maskArr)
             del maskArr
+
+        if nibbleMask:
+            inarr.mask = maximum_filter(inarr.mask, size=3)
 
     if smoothing and smoothing > 1:
         # upsample and update affine
@@ -108,8 +118,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         if grib2:
             smoothing -=1
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
+
     else:
         smoothing = 1
+
 
     if classfile:
         with open(classfile, 'r') as ofile:
@@ -129,11 +141,11 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
     schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
-
+    print 'writing to shape'
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         breakNum = max(breaks.keys())
-        click.echo("Simplifying: ", nl=False)
+        click.echo("Vectorizing: ", nl=False)
         for i in range(1, breakNum + 1):
             click.echo("%d, " % (breaks[i]), nl=False)
             tRas[np.where(classRas>=i)] = 1

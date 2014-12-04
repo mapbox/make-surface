@@ -20,11 +20,13 @@ def handleGrib2(gribArr, otrans):
     from rasterio import Affine
     import numpy as np
     from scipy.ndimage import zoom
+
     gribArr = zoom(gribArr, 2, order=1)
     outAff = Affine(otrans.a / 2.0, otrans.b,otrans.c - 180.0 + (otrans.a / 2.0),
              otrans.d,otrans.e / 2.0, otrans.f)
     oshape = gribArr.shape
     fixGrib = np.hstack((gribArr[:, oshape[1] / 2 + 1:oshape[1]],gribArr[:, 0:oshape[1] / 2 + 1]))
+
     return fixGrib, outAff
 
 def zoomSmooth(inArr, smoothing, inAffine):
