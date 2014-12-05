@@ -5,7 +5,7 @@ from fiona.crs import from_epsg
 import numpy as np
 from scripts import tools
 from scipy.ndimage import zoom
-from scipy.ndimage.filters import median_filter, maximum_filter, gaussian_filter
+from scipy.ndimage.filters import median_filter, maximum_filter
 import matplotlib.pyplot as plot
 
 def classify(inArr, classes, weighting):
@@ -20,16 +20,16 @@ def classify(inArr, classes, weighting):
         tempArray[np.where(inArr.mask == True)] = None
     zRange = zMax-zMin
     zInterval = zRange / float(classes)
-    breaks = {}
+    breaks = []
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
-    for i in range(0, classes):
+    for i in range(classes):
         eQint = i * zInterval + zMin
         quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
         cClass = weighting * eQint + (1.0 - weighting) * quant
-        breaks[i + 1] = cClass
-        outRas[np.where(inArr > cClass)] = i + 1
+        print cClass
+        breaks.append(cClass)
+        outRas[np.where(inArr > cClass)] = i
     outRas[np.where(inArr.mask == True)] = 0
-    breaks[0] = -999
     del tempArray
     return outRas.astype(np.uint8), breaks
 
@@ -40,16 +40,15 @@ def classifyAll(inArr):
     zRange = zMax-zMin
     classes = int(zRange)
     zInterval = zRange / float(classes)
-    breaks = {}
     click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
     outRas += 1
-    breaks[1] = int(zMin)
+    breaks = [int(zMin)]
     for i in range(1, classes):
         cClass = int(i * zInterval + zMin)
-        breaks[i + 1] = cClass
+        breaks.append(cClass)
         outRas[np.where(inArr >= cClass)] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
-    breaks[0] = -999
+    # breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
 def classifyManual(inArr, classArr):
@@ -74,22 +73,29 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, grib2, axonometrize, nosimple, setNoData, nibbleMask):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask):
     with rasterio.open(infile, 'r') as src:
+
+        if type(band) == str:
+            band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
+        elif type(band) != int:
+            band = 1
+        print band
+
         inarr = src.read_band(band)
         oshape = src.shape
         oaff = src.affine
         if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
             inarr[np.where(inarr.mask == True)] = setNoData
             nodata = True
-        elif grib2 and hasattr(inarr, 'mask'):
+        elif globeWrap and hasattr(inarr, 'mask'):
             nodata = True
 
         #simplification threshold
         simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
         #handle 0 - 360 extent .grib2 files
-        if grib2:
+        if globeWrap:
             inarr, oaff = tools.handleGrib2(inarr, oaff)
 
         #handle dif nodata situations
@@ -104,7 +110,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             maskArr[np.where(inarr == nodata)] = True
             inarr = np.ma.array(inarr, mas=maskArr)
             del maskArr
-        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']) or nodata:# and hasattr(inarr, 'mask') != False
+        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']) or nodata:
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             inarr = np.ma.array(inarr, mask=maskArr)
             del maskArr
@@ -115,7 +121,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     if smoothing and smoothing > 1:
         # upsample and update affine
         # global gribs have to be upsampled x 2 already
-        if grib2:
+        if globeWrap:
             smoothing -=1
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
 
@@ -144,10 +150,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     print 'writing to shape'
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
-        breakNum = max(breaks.keys())
         click.echo("Vectorizing: ", nl=False)
-        for i in range(1, breakNum + 1):
-            click.echo("%d, " % (breaks[i]), nl=False)
+        print breaks
+        for i, br in enumerate(breaks):
+            click.echo("%d, " % (br), nl=False)
             tRas[np.where(classRas>=i)] = 1
             tRas[np.where(classRas<i)] = 0
             if nodata:
@@ -159,7 +165,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                         if len(f) > 5 or c == 0:
                             if axonometrize:
                                 f = np.array(f)
-                                f[:,1] += (axonometrize * breaks[i])
+                                f[:,1] += (axonometrize * br)
                             if nosimple:
                                  poly = Polygon(f)
                             else:
@@ -167,4 +173,4 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                             featurelist.append(poly)
                     if len(featurelist) != 0:
                         oPoly = MultiPolygon(featurelist)
-                        outshp.write({'geometry': mapping(oPoly),'properties': {'value': breaks[i]}})
+                        outshp.write({'geometry': mapping(oPoly),'properties': {'value': br}})

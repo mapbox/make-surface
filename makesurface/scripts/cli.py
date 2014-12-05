@@ -9,7 +9,7 @@ import makesurface
 
 @click.argument('outfile', type=str)
 
-@click.option('--band', '-b', default=1,
+@click.option('--band', '-b', default=None,
     help='Input band to vectorize [default = 1]')
 
 @click.option('--classes', '-cl', default='10',
@@ -35,7 +35,7 @@ import makesurface
 @click.option('--nibble', '-n', is_flag=True,
     help='Expand mask by 1 pixel')
 
-@click.option('--grib2', '-g', is_flag=True,
+@click.option('--globewrap', '-g', is_flag=True,
     help='Flag for processing of 0 - 360 grib2 rasters')
 
 @click.option('--axonometrize', type=float, default=None,
@@ -43,8 +43,8 @@ import makesurface
 
 @click.option('--nosimple', '-ns', is_flag=True)
 
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, grib2, axonometrize, nosimple, setnodata, nibble):
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble):
     """
     Vectorize a raster
     """
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, grib2, axonometrize, nosimple, setnodata, nibble)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble)
