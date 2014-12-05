@@ -10,16 +10,16 @@ import makesurface
 @click.argument('outfile', type=str)
 
 @click.option('--band', '-b', default=None,
-    help='Input band to vectorize [default = 1]')
+    help='Input band to vectorize. Can be a number, or a band name [default = 1]')
 
 @click.option('--classes', '-cl', default='10',
-    help='Number of output classes, OR all for rounded input values (ignored if class file specified) [default = 10]')
+    help='Number of output classes, OR "all" for rounded input values (ignored if class file specified) [default = 10]')
 
 @click.option('--classfile', '-cf', 
     help='One-line CSV of break values [default = None]')
 
 @click.option('--weight', '-w', default=1,
-    help='Weighting between equal interval and quantile breaks [default = 0.5]')
+    help='Weighting between equal interval and quantile breaks [default = 1 / equal interval]')
 
 @click.option('--smoothing', '-s', type=int,
     help='Value by which to zoom and smooth the data [default = None]')

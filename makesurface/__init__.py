@@ -48,7 +48,6 @@ def classifyAll(inArr):
         breaks.append(cClass)
         outRas[np.where(inArr >= cClass)] = i + 1
     outRas[np.where(inArr.mask == True)] = 0
-    # breaks[0] = -999
     return outRas.astype(np.uint8), breaks
 
 def classifyManual(inArr, classArr):
@@ -114,7 +113,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             maskArr = np.zeros(inarr.shape, dtype=np.bool)
             inarr = np.ma.array(inarr, mask=maskArr)
             del maskArr
-
+        elif (type(src.meta['nodata']) == int or type(src.meta['nodata']) == float) and hasattr(inarr, 'mask'):
+            nodata = True
+        
         if nibbleMask:
             inarr.mask = maximum_filter(inarr.mask, size=3)
 
@@ -151,7 +152,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         click.echo("Vectorizing: ", nl=False)
-        print breaks
+        print nodata
         for i, br in enumerate(breaks):
             click.echo("%d, " % (br), nl=False)
             tRas[np.where(classRas>=i)] = 1
