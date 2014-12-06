@@ -29,6 +29,16 @@ def handleGrib2(gribArr, otrans):
 
     return fixGrib, outAff
 
+def fixRap(rapArr, maskPath):
+    import rasterio
+    import numpy as np
+
+    with rasterio.open('/Users/dnomadb/satellite-lcc/sampler/mask.tif', 'r') as src:
+        maskBand = src.read_band(1)
+        rapArr.mask[np.where(maskBand == 0)] = True
+    
+    return rapArr.mask
+
 def zoomSmooth(inArr, smoothing, inAffine):
     zoomReg = zoom(inArr.data, smoothing, order=0)
     zoomed = zoom(inArr.data, smoothing, order=1)

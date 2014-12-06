@@ -72,14 +72,13 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
     with rasterio.open(infile, 'r') as src:
 
         if type(band) == str:
             band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
         elif type(band) != int:
             band = 1
-        print band
 
         inarr = src.read_band(band)
         oshape = src.shape
@@ -115,6 +114,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             del maskArr
         elif (type(src.meta['nodata']) == int or type(src.meta['nodata']) == float) and hasattr(inarr, 'mask'):
             nodata = True
+
+        if rapFix:
+            inarr.mask = tools.fixRap(inarr, rapFix)
         
         if nibbleMask:
             inarr.mask = maximum_filter(inarr.mask, size=3)

@@ -38,13 +38,16 @@ import makesurface
 @click.option('--globewrap', '-g', is_flag=True,
     help='Flag for processing of 0 - 360 grib2 rasters')
 
+@click.option('--rapfix', '-rf', default=None,
+    help='Use only for fixing RAP.grib2s')
+
 @click.option('--axonometrize', type=float, default=None,
     help='EXPERIMENTAL')
 
 @click.option('--nosimple', '-ns', is_flag=True)
 
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble):
+def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix):
     """
     Vectorize a raster
     """
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble)
+    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
