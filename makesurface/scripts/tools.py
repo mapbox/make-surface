@@ -33,10 +33,10 @@ def fixRap(rapArr, maskPath):
     import rasterio
     import numpy as np
 
-    with rasterio.open('/Users/dnomadb/satellite-lcc/sampler/mask.tif', 'r') as src:
+    with rasterio.open(maskPath, 'r') as src:
         maskBand = src.read_band(1)
         rapArr.mask[np.where(maskBand == 0)] = True
-    
+
     return rapArr.mask
 
 def zoomSmooth(inArr, smoothing, inAffine):

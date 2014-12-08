@@ -73,53 +73,54 @@ def zoomSmooth(inArr, smoothing, inAffine):
     return inArr, oaff
 
 def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
-    with rasterio.open(infile, 'r') as src:
+    with rasterio.drivers():
+        with rasterio.open(infile, 'r') as src:
 
-        if type(band) == str:
-            band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
-        elif type(band) != int:
-            band = 1
+            if type(band) == str:
+                band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
+            elif type(band) != int:
+                band = 1
 
-        inarr = src.read_band(band)
-        oshape = src.shape
-        oaff = src.affine
-        if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
-            inarr[np.where(inarr.mask == True)] = setNoData
-            nodata = True
-        elif globeWrap and hasattr(inarr, 'mask'):
-            nodata = True
+            inarr = src.read_band(band)
+            oshape = src.shape
+            oaff = src.affine
+            if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
+                inarr[np.where(inarr.mask == True)] = setNoData
+                nodata = True
+            elif globeWrap and hasattr(inarr, 'mask'):
+                nodata = True
 
-        #simplification threshold
-        simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
+            #simplification threshold
+            simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
-        #handle 0 - 360 extent .grib2 files
-        if globeWrap:
-            inarr, oaff = tools.handleGrib2(inarr, oaff)
+            #handle 0 - 360 extent .grib2 files
+            if globeWrap:
+                inarr, oaff = tools.handleGrib2(inarr, oaff)
 
-        #handle dif nodata situations
+            #handle dif nodata situations
 
-        if nodata == 'min':
-            maskArr = np.zeros(inarr.shape, dtype=np.bool)
-            maskArr[np.where(inarr == inarr.min())] = True
-            inarr = np.ma.array(inarr, mask=maskArr)
-            del maskArr
-        elif type(nodata) == int or type(nodata) == float:
-            maskArr = np.zeros(inarr.shape, dtype=np.bool)
-            maskArr[np.where(inarr == nodata)] = True
-            inarr = np.ma.array(inarr, mas=maskArr)
-            del maskArr
-        elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']) or nodata:
-            maskArr = np.zeros(inarr.shape, dtype=np.bool)
-            inarr = np.ma.array(inarr, mask=maskArr)
-            del maskArr
-        elif (type(src.meta['nodata']) == int or type(src.meta['nodata']) == float) and hasattr(inarr, 'mask'):
-            nodata = True
+            if nodata == 'min':
+                maskArr = np.zeros(inarr.shape, dtype=np.bool)
+                maskArr[np.where(inarr == inarr.min())] = True
+                inarr = np.ma.array(inarr, mask=maskArr)
+                del maskArr
+            elif type(nodata) == int or type(nodata) == float:
+                maskArr = np.zeros(inarr.shape, dtype=np.bool)
+                maskArr[np.where(inarr == nodata)] = True
+                inarr = np.ma.array(inarr, mas=maskArr)
+                del maskArr
+            elif src.meta['nodata'] == None or np.isnan(src.meta['nodata']) or nodata:
+                maskArr = np.zeros(inarr.shape, dtype=np.bool)
+                inarr = np.ma.array(inarr, mask=maskArr)
+                del maskArr
+            elif (type(src.meta['nodata']) == int or type(src.meta['nodata']) == float) and hasattr(inarr, 'mask'):
+                nodata = True
 
-        if rapFix:
-            inarr.mask = tools.fixRap(inarr, rapFix)
-        
-        if nibbleMask:
-            inarr.mask = maximum_filter(inarr.mask, size=3)
+            if rapFix:
+                inarr.mask = tools.fixRap(inarr, rapFix)
+
+            if nibbleMask:
+                inarr.mask = maximum_filter(inarr.mask, size=3)
 
     if smoothing and smoothing > 1:
         # upsample and update affine
