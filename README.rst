@@ -66,6 +66,7 @@ Options:
 * :console:`-c, --carto`
 * :console:`-n, --nibble`            Expand mask by 1 pixel
 * :console:`-g, --globewrap`          Flag for processing of 0 - 360 grib2 rasters
+* :console:`-rf, --rapfix TEXT       Rap Mask - Use only for fixing RAP.grib2s
 * :console:`--axonometrize FLOAT`     EXPERIMENTAL
 * :console:`-ns, --nosimple`
   :console:`--help`                   Show this message and exit.

@@ -39,7 +39,7 @@ import makesurface
     help='Flag for processing of 0 - 360 grib2 rasters')
 
 @click.option('--rapfix', '-rf', default=None,
-    help='Use only for fixing RAP.grib2s')
+    help='Rap Mask - Use only for fixing RAP.grib2s')
 
 @click.option('--axonometrize', type=float, default=None,
     help='EXPERIMENTAL')
