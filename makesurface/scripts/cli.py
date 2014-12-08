@@ -4,6 +4,10 @@ import click
 
 import makesurface
 
+@click.group()
+def cli():
+    pass
+
 @click.command()
 @click.argument('infile', type=str)
 
@@ -46,8 +50,17 @@ import makesurface
 
 @click.option('--nosimple', '-ns', is_flag=True)
 
-def cli(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix):
+def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix):
     """
     Vectorize a raster
     """
-    makesurface.vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
+    makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
+
+@click.command()
+@click.argument('infile', type=str)
+@click.argument('zoom', type=int)
+def triangulate(infile, zoom):
+    makesurface.triangulate(infile, zoom)
+
+cli.add_command(vectorize)
+cli.add_command(triangulate)

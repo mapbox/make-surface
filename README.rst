@@ -1,5 +1,5 @@
 makesurface ``cool-tools``
-===========
+==========================
 
 A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
 
