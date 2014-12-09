@@ -13,14 +13,16 @@ def quadtree(x, y, zoom):
     }
 
     tile = mercantile.parent(x, y, zoom)
-    # quadkey = np.zeros(zoom, np.dtype=)
-    quadkey = key[(x) % 2 == 0, (y) % 2 == 0]
-    quadkey = key[(tile.x) % 2 == 0, (tile.y) % 2 == 0] + quadkey
+    quadKey = [
+        key[(x) % 2 == 0, (y) % 2 == 0],
+        key[(tile.x) % 2 == 0, (tile.y) % 2 == 0]
+    ]
 
     for z in range(zoom - 1, 1, -1):
         tile = mercantile.parent(tile.x, tile.y, z)
-        quadkey = key[(tile.x) % 2 == 0, (tile.y) % 2 == 0] + quadkey
-    return quadkey
+        quadKey.append(key[(tile.x) % 2 == 0, (tile.y) % 2 == 0])
+
+    return ''.join(reversed(quadKey))
 
 def getCorners(bounds, boolKey):
     coordOrd = {
@@ -52,7 +54,7 @@ def triangulate(zoom, output, bounds, tile):
     else:
         tile = np.array(tile.split(' ')).astype(np.uint16)
         tBounds = mercantile.bounds(tile[0], tile[0], tile[0])
-        bounds = np.array([tBounds.west, tBounds.south, tBounds.east-0.0001, tBounds.north])
+        bounds = np.array([tBounds.west, tBounds.south, tBounds.east-0.0001 , tBounds.north])
 
     gJSON = {
         "type": "FeatureCollection",
@@ -60,6 +62,7 @@ def triangulate(zoom, output, bounds, tile):
     }
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
+
     for r in range(tileMin.y, tileMax.y + 1):
         for c in range(tileMin.x, tileMax.x + 1):
             quad = quadtree(c, r, zoom)
@@ -86,5 +89,9 @@ def triangulate(zoom, output, bounds, tile):
                 }
                 })
 
-    stdout = click.get_text_stream('stdout')
-    stdout.write(json.dumps(gJSON, indent=2))
+    if output:
+        with open(output, 'w') as oFile:
+            oFile.write(json.dumps(gJSON, indent=2))
+    else:
+        stdout = click.get_text_stream('stdout')
+        stdout.write(json.dumps(gJSON, indent=2))

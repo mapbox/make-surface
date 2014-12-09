@@ -59,8 +59,8 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, ba
 @click.command()
 @click.option('--bbox', type=str, default=None)
 @click.option('--tile', type=str, default=None)
+@click.option('--output', type=str, default=None)
 @click.argument('zoom', type=int)
-@click.argument('output', type=str)
 def triangulate(zoom, output, bbox, tile):
     makesurface.triangulate(zoom, output, bbox, tile)
 
