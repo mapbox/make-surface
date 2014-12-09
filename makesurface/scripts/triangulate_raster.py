@@ -1,6 +1,5 @@
 import rasterio, mercantile, json, click
 import numpy as np
-from matplotlib.pyplot import plot, show
 
 def quadtree(x, y, zoom ):
     '''
@@ -46,8 +45,6 @@ def getCorners(bounds, boolKey):
         corners[coordOrd[boolKey][1]]
     ]
 
-
-
 def triangulate(bounds, zoom, output):
     gJSON = {
         "type": "FeatureCollection",
@@ -81,9 +78,6 @@ def triangulate(bounds, zoom, output):
                     "coordinates": [coords[1].tolist()]
                 }
                 })
-            # plot(coords[0][:,0], coords[0][:,1], c='red')
-            # plot(coords[1][:,0], coords[1][:,1], c='blue')
 
-    # show()
     stdout = click.get_text_stream('stdout')
     stdout.write(json.dumps(gJSON, indent=2))
