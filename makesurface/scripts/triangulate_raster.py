@@ -1,7 +1,7 @@
-import rasterio, mercantile, json, click
+import rasterio, mercantile, json, click, sys
 import numpy as np
 
-def quadtree(x, y, zoom ):
+def quadtree(x, y, zoom):
     '''
     This is slow right now - speed it up
     '''
@@ -13,6 +13,7 @@ def quadtree(x, y, zoom ):
     }
 
     tile = mercantile.parent(x, y, zoom)
+    # quadkey = np.zeros(zoom, np.dtype=)
     quadkey = key[(x) % 2 == 0, (y) % 2 == 0]
     quadkey = key[(tile.x) % 2 == 0, (tile.y) % 2 == 0] + quadkey
 
@@ -23,11 +24,11 @@ def quadtree(x, y, zoom ):
 
 def getCorners(bounds, boolKey):
     coordOrd = {
-        True: [
+        False: [
                    [0, 2, 3, 0],
                    [0, 2, 1, 0]
                 ],
-        False: [
+        True: [
                    [3, 1, 2, 3],
                    [3, 1, 0, 3]
                 ]
@@ -45,12 +46,18 @@ def getCorners(bounds, boolKey):
         corners[coordOrd[boolKey][1]]
     ]
 
-def triangulate(bounds, zoom, output):
+def triangulate(zoom, output, bounds, tile):
+    if bounds:
+        bounds = np.array(bounds.split(' ')).astype(np.float64)
+    else:
+        tile = np.array(tile.split(' ')).astype(np.uint16)
+        tBounds = mercantile.bounds(tile[0], tile[0], tile[0])
+        bounds = np.array([tBounds.west, tBounds.south, tBounds.east-0.0001, tBounds.north])
+
     gJSON = {
         "type": "FeatureCollection",
         "features": []
     }
-    bounds = np.array(bounds.split(' ')).astype(np.float64)
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
     for r in range(tileMin.y, tileMax.y + 1):
