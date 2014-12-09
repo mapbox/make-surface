@@ -57,10 +57,11 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, ba
     makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
 
 @click.command()
-@click.argument('infile', type=str)
+@click.option('--bbox', type=str)
 @click.argument('zoom', type=int)
-def triangulate(infile, zoom):
-    makesurface.triangulate(infile, zoom)
+@click.argument('output', type=str)
+def triangulate(bbox, zoom, output):
+    makesurface.triangulate(bbox, zoom, output)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)
