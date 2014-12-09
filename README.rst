@@ -1,5 +1,5 @@
 makesurface ``cool-tools``
-==========================
+==========================  
 
 A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
 
@@ -34,8 +34,10 @@ Or, install from PyPI
 
 pip install makesurface --pre
 
-Usage
-------
+Usage - Vectorize
+-----------------
+
+:console:`makesurface vectorize <input raster> <output shapefile> [OPTIONS]`
 
 Takes an input raster, and converts into a stacked shapefile. Sort of like :console:`gdal polygonize` with more control. Also prints out a cartocss template for stylizing (one style for each class).
 
@@ -47,7 +49,6 @@ Into this:
 
 .. image:: https://cloud.githubusercontent.com/assets/5084513/5040006/29fe36c6-6b5c-11e4-8ad5-07c3edb6c66c.png
 
-:console:`makesurface <input raster> <output shapefile> [OPTIONS]`
 
 Arguments
 
@@ -66,7 +67,24 @@ Options:
 * :console:`-c, --carto`
 * :console:`-n, --nibble`            Expand mask by 1 pixel
 * :console:`-g, --globewrap`          Flag for processing of 0 - 360 grib2 rasters
-* :console:`-rf, --rapfix TEXT       Rap Mask - Use only for fixing RAP.grib2s
+* :console:`-rf, --rapfix TEXT      Rap Mask - Use only for fixing RAP.grib2s
 * :console:`--axonometrize FLOAT`     EXPERIMENTAL
 * :console:`-ns, --nosimple`
-  :console:`--help`                   Show this message and exit.
+* :console:`--help`                   Show this message and exit.
+
+Usage - Triangulate
+-------------------
+
+:console:`makesurface triangulate <zoom> [OPTIONS]`
+
+Creates an empty triangular lattice:
+.. image:: https://cloud.githubusercontent.com/assets/5084513/5363377/79925be8-7f90-11e4-8cd0-86705600b983.png
+
+Arguments:
+* :console: `<zoom>` Zoom level tile size to create triangular lattice at (where triangle size == tile size at zoom)
+
+Options:
+* :console:`--bbox TEXT`    Bounding Box ("w s e n") to create lattice in
+* :console:`--tile TEXT`   Tile ("x y z") to create lattice in
+* :console:`--output TEXT`  File to write to (.geojson)
+* :console:`--help`         Show this message and exit.

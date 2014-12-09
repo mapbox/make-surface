@@ -51,10 +51,12 @@ def getCorners(bounds, boolKey):
 def triangulate(zoom, output, bounds, tile):
     if bounds:
         bounds = np.array(bounds.split(' ')).astype(np.float64)
-    else:
+    elif tile:
         tile = np.array(tile.split(' ')).astype(np.uint16)
         tBounds = mercantile.bounds(tile[0], tile[0], tile[0])
         bounds = np.array([tBounds.west, tBounds.south, tBounds.east-0.0001 , tBounds.north])
+    else:
+        sys.exit('Error: A bounds or tile must be specified')
 
     gJSON = {
         "type": "FeatureCollection",

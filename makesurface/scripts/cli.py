@@ -57,11 +57,17 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, ba
     makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
 
 @click.command()
-@click.option('--bbox', type=str, default=None)
-@click.option('--tile', type=str, default=None)
-@click.option('--output', type=str, default=None)
+@click.option('--bbox', type=str, default=None,
+    help='Bounding Box ("w s e n") to create lattice in')
+@click.option('--tile', type=str, default=None,
+    help='Tile ("x y z") to create lattice in')
+@click.option('--output', type=str, default=None,
+    help='File to write to (.geojson)')
 @click.argument('zoom', type=int)
 def triangulate(zoom, output, bbox, tile):
+    '''
+    Creates triangular lattice at specified zoom (where triangle size == tile size)'
+    '''
     makesurface.triangulate(zoom, output, bbox, tile)
 
 cli.add_command(vectorize)
