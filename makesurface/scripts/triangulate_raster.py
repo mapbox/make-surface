@@ -2,27 +2,16 @@ import rasterio, mercantile, json, click, sys
 import numpy as np
 
 def quadtree(x, y, zoom):
-    '''
-    This is slow right now - speed it up
-    '''
-    key = {
-        (True, True) : '0',
-        (False, True) : '1',
-        (True, False) : '2',
-        (False, False) : '3'
-    }
-
-    tile = mercantile.parent(x, y, zoom)
-    quadKey = [
-        key[(x) % 2 == 0, (y) % 2 == 0],
-        key[(tile.x) % 2 == 0, (tile.y) % 2 == 0]
-    ]
-
-    for z in range(zoom - 1, 1, -1):
-        tile = mercantile.parent(tile.x, tile.y, z)
-        quadKey.append(key[(tile.x) % 2 == 0, (tile.y) % 2 == 0])
-
-    return ''.join(reversed(quadKey))
+    xA = (2 ** np.arange(zoom))[::-1]
+    xA = (x / xA) % 2
+    yA = (2 ** np.arange(zoom))[::-1]
+    yA = (y / yA) % 2
+    out = np.zeros(zoom, dtype=np.str)
+    out[np.where((xA == 0) & (yA == 0))] = '0'
+    out[np.where((xA == 1) & (yA == 0))] = '1'
+    out[np.where((xA == 0) & (yA == 1))] = '2'
+    out[np.where((xA == 1) & (yA == 1))] = '3'
+    return ''.join(out)
 
 def getCorners(bounds, boolKey):
     coordOrd = {
@@ -53,8 +42,8 @@ def triangulate(zoom, output, bounds, tile):
         bounds = np.array(bounds.split(' ')).astype(np.float64)
     elif tile:
         tile = np.array(tile.split(' ')).astype(np.uint16)
-        tBounds = mercantile.bounds(tile[0], tile[0], tile[0])
-        bounds = np.array([tBounds.west, tBounds.south, tBounds.east-0.0001 , tBounds.north])
+        tBounds = mercantile.bounds(tile[0], tile[1], tile[2])
+        bounds = np.array([tBounds.west, tBounds.south, tBounds.east , tBounds.north])
     else:
         sys.exit('Error: A bounds or tile must be specified')
 
@@ -65,15 +54,18 @@ def triangulate(zoom, output, bounds, tile):
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
-    for r in range(tileMin.y, tileMax.y + 1):
-        for c in range(tileMin.x, tileMax.x + 1):
+
+    for r in range(tileMin.y, tileMax.y):
+        for c in range(tileMin.x, tileMax.x):
             quad = quadtree(c, r, zoom)
             boolKey = (r+c) % 2 == 0
+
             coords = getCorners(mercantile.bounds(c, r, zoom), boolKey)
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": quad + '0'
+                    "quadtree": quad,
+                    "dir": 'n'
                 },
                 "geometry": {
                     "type": "Polygon",
@@ -83,7 +75,8 @@ def triangulate(zoom, output, bounds, tile):
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": quad + '1'
+                    "quadtree": quad,
+                    "dir": 's'
                 },
                 "geometry": {
                     "type": "Polygon",
