@@ -11,20 +11,56 @@ def quadtree(x, y, zoom):
     out[np.where((xA == 1) & (yA == 0))] = '1'
     out[np.where((xA == 0) & (yA == 1))] = '2'
     out[np.where((xA == 1) & (yA == 1))] = '3'
-    return ''.join(out)
+    return out
+
+coordOrd = {
+    False: [
+               [0, 2, 3, 0],
+               [0, 2, 1, 0]
+            ],
+    True: [
+               [3, 1, 2, 3],
+               [3, 1, 0, 3]
+            ]
+    }
+
+class facetParent:
+    def __init__(self):   
+        self.dirMap = {
+                       'n': 0,
+                       's': 1
+        }
+        self.relInd = {
+                       (True, True) : 0,
+                       (False, True) : 1,
+                       (True, False) : 2,
+                       (False, False) : 3
+                       }
+        self.dirTree = {
+            True: (
+                ('n', 's'),
+                ('n', 'n'),
+                ('s', 's'),
+                ('n', 's')
+                ),
+            False: (
+                ('n', 'n'),
+                ('n', 's'),
+                ('n', 's'),
+                ('s', 's')
+                )
+            }
+    def getParents(self, direction, x, y, z):
+        dirs = []
+        for zoom in range(z):
+            orientation = (x / 2 + y / 2) % 2 == 0
+            direction = self.dirTree[orientation][self.relInd[x % 2 == 0, y % 2 == 0]][self.dirMap[direction]]
+            dirs.append(direction)
+            x = x / 2
+            y = y / 2
+        return list(reversed(dirs))
 
 def getCorners(bounds, boolKey):
-    coordOrd = {
-        False: [
-                   [0, 2, 3, 0],
-                   [0, 2, 1, 0]
-                ],
-        True: [
-                   [3, 1, 2, 3],
-                   [3, 1, 0, 3]
-                ]
-        }
-
     corners = np.array([
         [bounds.west, bounds.south],
         [bounds.east, bounds.south],
@@ -54,17 +90,19 @@ def triangulate(zoom, output, bounds, tile):
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
+    pGet = facetParent()
 
     for r in range(tileMin.y, tileMax.y):
         for c in range(tileMin.x, tileMax.x):
             quad = quadtree(c, r, zoom)
             boolKey = (r+c) % 2 == 0
-
+            n = pGet.getParents('n', c, r, zoom)
+            s = pGet.getParents('s', c, r, zoom)
             coords = getCorners(mercantile.bounds(c, r, zoom), boolKey)
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": quad,
+                    "quadtree": ''.join(np.dstack((n,quad)).flatten()),
                     "dir": 'n'
                 },
                 "geometry": {
@@ -75,7 +113,7 @@ def triangulate(zoom, output, bounds, tile):
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": quad,
+                    "quadtree": ''.join(np.dstack((s,quad)).flatten()),
                     "dir": 's'
                 },
                 "geometry": {
