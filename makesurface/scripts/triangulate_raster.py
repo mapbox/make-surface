@@ -102,7 +102,7 @@ def triangulate(zoom, output, bounds, tile):
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": ''.join(np.dstack((n,quad)).flatten()),
+                    "quadtree": ''.join(np.dstack((n,quad)).flatten())+'n',
                     "dir": 'n'
                 },
                 "geometry": {
@@ -113,7 +113,7 @@ def triangulate(zoom, output, bounds, tile):
             gJSON['features'].append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": ''.join(np.dstack((s,quad)).flatten()),
+                    "quadtree": ''.join(np.dstack((s,quad)).flatten())+'s',
                     "dir": 's'
                 },
                 "geometry": {
