@@ -22,7 +22,7 @@ def cli():
 @click.option('--classfile', '-cf', 
     help='One-line CSV of break values [default = None]')
 
-@click.option('--weight', '-w', default=1,
+@click.option('--weight', '-w', default=1.0,
     help='Weighting between equal interval and quantile breaks [default = 1 / equal interval]')
 
 @click.option('--smoothing', '-s', type=int,
