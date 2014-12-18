@@ -52,6 +52,7 @@ def zoomSmooth(inArr, smoothing, inAffine):
     return inArr, oaff
 
 def quadtree(x, y, zoom):
+    import numpy as np
     xA = (2 ** np.arange(zoom))[::-1]
     xA = (x / xA) % 2
     yA = (2 ** np.arange(zoom))[::-1]

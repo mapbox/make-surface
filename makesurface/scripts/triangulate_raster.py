@@ -1,4 +1,5 @@
 import rasterio, mercantile, json, click, sys
+import tools
 import numpy as np
 
 coordOrd = {
