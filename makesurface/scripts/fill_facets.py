@@ -24,7 +24,7 @@ def loadRaster(filePath, band, bounds, grib2):
         rasInd = tools.rasterIndexer(rasArr.shape, rasbounds)
         frInd = rasInd.getIndices(bounds[0], bounds[3])
         toInd = rasInd.getIndices(bounds[2], bounds[1])
-        return rasArr[frInd[0]:toInd[0] + 1, frInd[1]:toInd[1] + 1], oaff
+        return rasArr[frInd[0]:toInd[0] + 1, frInd[1]:toInd[1] + 1], oaff, src.crs
 
 def addGeoJSONprop(feat, propName, propValue):
     feat['properties'][propName] = propValue
@@ -36,7 +36,7 @@ def getRasterValues(geoJSON, rasArr, oaff, UIDs, bounds, output):
     readaff = Affine(xCell, 0.00,bounds[0],
                     0.00,-yCell, bounds[3])
     sampleRaster = features.rasterize(
-            ((feat['geometry'], i) for i, feat in enumerate(geoJSON)),
+            ((feat['coordinates'], i) for i, feat in enumerate(geoJSON)),
             out_shape=rasArr.shape,
             transform=readaff)
     if output == 'GeoJSON':
@@ -53,9 +53,30 @@ def upsampleRaster(rasArr, featDims):
     zoomFactor = int(featDims / min(rasArr.shape)) * 4
     return zoom(rasArr, zoomFactor, order=1)
 
+def projectShapes(features, toCRS):
+    import pyproj
+    from functools import partial
+    import fiona.crs as fcrs
+    from shapely.geometry import shape, mapping
+    from shapely.ops import transform as shpTrans
+
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(fcrs.from_epsg(4326)),
+        pyproj.Proj(toCRS))
+
+    return list(
+        mapping(
+            shpTrans(
+                project,
+                shape(feat['geometry']))
+        ) for feat in features)
+
 geoJSON, uidMap, bounds, featDims = getGJSONinfo('/Users/dnomadb/Documents/lattices/lattice12.geojson')
 
-rasArr, oaff = loadRaster('/Users/dnomadb/Downloads/gfs.t18z.mastergrb2f00', 1, bounds, True)
+rasArr, oaff, rasCRS= loadRaster('/Users/dnomadb/Downloads/hrrr.t00z.wrfsfcf00 (2).grib2', 1, bounds, True)
+
+geoJSON = projectShapes(geoJSON, rasCRS)
 
 if min(rasArr.shape) < 3 * featDims:
     rasArr = upsampleRaster(rasArr, featDims)
