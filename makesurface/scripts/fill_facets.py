@@ -34,7 +34,6 @@ def loadRaster(filePath, band, bounds, grib2):
             rasInd = tools.rasterIndexer(rasArr.shape, rasbounds)
             frInd = rasInd.getIndices(bounds[0], bounds[3])
             toInd = rasInd.getIndices(bounds[2], bounds[1])
-            print frInd, toInd
             return rasArr[frInd[0]:toInd[0] + 1, frInd[1]:toInd[1] + 1], oaff
 
 def addGeoJSONprop(feat, propName, propValue):
@@ -95,14 +94,17 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, globeWrap, densify=False, output=None):
+def fillFacets(geoJSONpath, rasterPath, globeWrap, output, densify=False):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
     rasCRS = getRasterInfo(rasterPath)
 
-    geoJSON = projectShapes(geoJSON, rasCRS)
-    bounds =  projectBounds(bounds, rasCRS)
+    if globeWrap:
+        pass
+    else:
+        geoJSON = projectShapes(geoJSON, rasCRS)
+        bounds =  projectBounds(bounds, rasCRS)
 
     rasArr, oaff = loadRaster(rasterPath, 1, bounds, globeWrap)
 

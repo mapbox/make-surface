@@ -72,7 +72,7 @@ def triangulate(zoom, output, bbox, tile):
     makesurface.triangulate(zoom, output, bbox, tile)
 
 @click.command()
-@click.argument('infile', type=click.Path(exists=True))
+@click.argument('infile', type=str)
 @click.argument('sampleraster', type=click.Path(exists=True))
 @click.option('--output', type=str, default=None,
     help='Write output to .json [default - print to stdout]')
@@ -81,7 +81,7 @@ def triangulate(zoom, output, bbox, tile):
 @click.option('--globewrap', '-g', is_flag=True,
     help='Flag for processing of 0 - 360 grib2 rasters')
 
-def fillfacets(infile, sampleraster, globewrap, zooming, output):
+def fillfacets(infile, sampleraster, output, globewrap, zooming):
     """
     Use GeoJSON-like geometry to get raster values
     """

@@ -7,4 +7,4 @@ def triangulate(zoom, output, bounds, tile):
     triangulate_raster.triangulate(zoom, output, bounds, tile)
 
 def fillfacets(infile, sampleRaster, globewrap, smoothing, outfile):
-    fill_facets.fillFacets(infile, sampleRaster, globewrap, smoothing, outfile)
+    fill_facets.fillFacets(infile, sampleRaster, globewrap, outfile, smoothing)
