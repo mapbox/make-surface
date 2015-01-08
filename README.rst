@@ -75,13 +75,13 @@ Options:
 Usage - Triangulate
 -------------------
 
-:console:`makesurface triangulate <zoom> [OPTIONS]`
+:console:`makesurface triangulate ZOOM [OPTIONS]`
 
 Creates an empty triangular lattice:
 .. image:: https://cloud.githubusercontent.com/assets/5084513/5363377/79925be8-7f90-11e4-8cd0-86705600b983.png
 
 Arguments:
-* :console: `<zoom>` Zoom level tile size to create triangular lattice at (where triangle size == tile size at zoom)
+* :console: `ZOOM` Zoom level tile size to create triangular lattice at (where triangle size == tile size at zoom)
 
 Options:
 * :console:`--bbox TEXT`    Bounding Box ("w s e n") to create lattice in
@@ -91,14 +91,12 @@ Options:
 
 Usage - fillfacets
 ------------------
-.. code-block:: bash
-makesurface fillfacets [OPTIONS] INFILE SAMPLERASTER
+:console:`makesurface fillfacets [OPTIONS] INFILE SAMPLERASTER`
 
-  Use GeoJSON-like geometry to get raster values
+Use GeoJSON-like geometry to get raster values
 
 Options:
-  --output TEXT      Write output to .json [default - print to stdout]
-  --zooming INTEGER  Manual upsampling of raster for sampling [Default =
-                     upsampling by estimated polygon density]
-  -g, --globewrap    Flag for processing of 0 - 360 grib2 rasters
-  --help             Show this message and exit.
+* :console:`--output TEXT`      Write output to .json [default - print to stdout]
+* :console:`--zooming INTEGER`  Manual upsampling of raster for sampling [Default = upsampling by estimated polygon density]
+* :console:`-g, --globewrap`    Flag for processing of 0 - 360 grib2 rasters
+* :console:`--help`             Show this message and exit.
