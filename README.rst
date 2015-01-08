@@ -88,3 +88,17 @@ Options:
 * :console:`--tile TEXT`   Tile ("x y z") to create lattice in
 * :console:`--output TEXT`  File to write to (.geojson)
 * :console:`--help`         Show this message and exit.
+
+Usage - fillfacets
+------------------
+.. code-block:: bash
+makesurface fillfacets [OPTIONS] INFILE SAMPLERASTER
+
+  Use GeoJSON-like geometry to get raster values
+
+Options:
+  --output TEXT      Write output to .json [default - print to stdout]
+  --zooming INTEGER  Manual upsampling of raster for sampling [Default =
+                     upsampling by estimated polygon density]
+  -g, --globewrap    Flag for processing of 0 - 360 grib2 rasters
+  --help             Show this message and exit.

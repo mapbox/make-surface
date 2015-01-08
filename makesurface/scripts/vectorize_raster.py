@@ -26,7 +26,6 @@ def classify(inArr, classes, weighting):
         eQint = i * zInterval + zMin
         quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
         cClass = weighting * eQint + (1.0 - weighting) * quant
-        print cClass
         breaks.append(cClass)
         outRas[np.where(inArr > cClass)] = i
     outRas[np.where(inArr.mask == True)] = 0
@@ -73,8 +72,13 @@ def zoomSmooth(inArr, smoothing, inAffine):
     return inArr, oaff
 
 def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
+
     with rasterio.drivers():
         with rasterio.open(infile, 'r') as src:
+            try:
+                band = int(band)
+            except:
+                band = str(band)
 
             if type(band) == str:
                 band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
@@ -84,6 +88,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             inarr = src.read_band(band)
             oshape = src.shape
             oaff = src.affine
+
             if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
                 inarr[np.where(inarr.mask == True)] = setNoData
                 nodata = True
@@ -98,7 +103,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                 inarr, oaff = tools.handleGrib2(inarr, oaff)
 
             #handle dif nodata situations
-
+        
             if nodata == 'min':
                 maskArr = np.zeros(inarr.shape, dtype=np.bool)
                 maskArr[np.where(inarr == inarr.min())] = True
@@ -132,7 +137,6 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     else:
         smoothing = 1
 
-
     if classfile:
         with open(classfile, 'r') as ofile:
             classifiers = ofile.read().split(',')
@@ -151,11 +155,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
     schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
-    print 'writing to shape'
+
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
         click.echo("Vectorizing: ", nl=False)
-        print nodata
         for i, br in enumerate(breaks):
             click.echo("%d, " % (br), nl=False)
             tRas[np.where(classRas>=i)] = 1

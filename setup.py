@@ -8,7 +8,7 @@ with open('README.rst', encoding='utf-8') as f:
 
 
 setup(name='makesurface',
-      version='0.0.7',
+      version='0.0.8',
       description="Create vector datasets from raster surfaces",
       long_description=long_description,
       classifiers=[],
@@ -21,7 +21,7 @@ setup(name='makesurface',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'click', 'fiona', 'numpy', 'rasterio', 'shapely', 'scipy', 'mercantile'
+          'click', 'fiona', 'numpy', 'rasterio', 'shapely', 'scipy', 'mercantile', 'pyproj'
       ],
       extras_require={
           'test': ['pytest'],

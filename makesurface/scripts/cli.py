@@ -22,7 +22,7 @@ def cli():
 @click.option('--classfile', '-cf', 
     help='One-line CSV of break values [default = None]')
 
-@click.option('--weight', '-w', default=1,
+@click.option('--weight', '-w', default=1.0,
     help='Weighting between equal interval and quantile breaks [default = 1 / equal interval]')
 
 @click.option('--smoothing', '-s', type=int,
@@ -64,11 +64,29 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, ba
 @click.option('--output', type=str, default=None,
     help='File to write to (.geojson)')
 @click.argument('zoom', type=int)
+
 def triangulate(zoom, output, bbox, tile):
-    '''
+    """
     Creates triangular lattice at specified zoom (where triangle size == tile size)'
-    '''
+    """
     makesurface.triangulate(zoom, output, bbox, tile)
+
+@click.command()
+@click.argument('infile', type=str)
+@click.argument('sampleraster', type=click.Path(exists=True))
+@click.option('--output', type=str, default=None,
+    help='Write output to .json [default - print to stdout]')
+@click.option('--zooming', type=int, default=None,
+    help='Manual upsampling of raster for sampling [Default = upsampling by estimated polygon density]')
+@click.option('--globewrap', '-g', is_flag=True,
+    help='Flag for processing of 0 - 360 grib2 rasters')
+
+def fillfacets(infile, sampleraster, output, globewrap, zooming):
+    """
+    Use GeoJSON-like geometry to get raster values
+    """
+    makesurface.fillfacets(infile, sampleraster, globewrap, zooming, output)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)
+cli.add_command(fillfacets)
