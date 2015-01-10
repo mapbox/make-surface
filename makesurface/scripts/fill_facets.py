@@ -17,9 +17,9 @@ def getRasterInfo(filePath):
     Load the raster, and get the crs (geoJSON needs to be projected into this crs to know what part of the raster to extract)
     """
     with rasterio.open(filePath, 'r') as src:
-        return src.crs
+        return src.crs, src.bounds
 
-def loadRaster(filePath, band, bounds, grib2):
+def loadRaster(filePath, band, bounds):
     """
 
     """
@@ -29,8 +29,7 @@ def loadRaster(filePath, band, bounds, grib2):
 
             oaff = src.affine
             rasbounds = src.bounds
-            if grib2:
-                rasArr, oaff, rasbounds = tools.handleGrib2(rasArr, oaff)
+
             rasInd = tools.rasterIndexer(rasArr.shape, rasbounds)
             frInd = rasInd.getIndices(bounds[0], bounds[3])
             toInd = rasInd.getIndices(bounds[2], bounds[1])
@@ -40,21 +39,17 @@ def addGeoJSONprop(feat, propName, propValue):
     feat['properties'][propName] = propValue
     return feat
 
-def getRasterValues(geoJSON, rasArr, oaff, UIDs, bounds):
-    xCell = (bounds[2] - bounds[0]) / float(rasArr.shape[1])
-    yCell = (bounds[3] - bounds[1]) / float(rasArr.shape[0])
-    readaff = Affine(xCell, 0.00,bounds[0],
-                    0.00,-yCell, bounds[3])
-    sampleRaster = features.rasterize(
-            ((feat['geometry'], i) for i, feat in enumerate(geoJSON)),
-            out_shape=rasArr.shape,
-            transform=readaff)
-    # todo - rewrite to update geoJSON in-place
-    # return {
-    #     "type": "FeatureCollection",
-    #     "features": list(addGeoJSONprop(feat, 'value', np.mean(rasArr[np.where(sampleRaster == i)])) for i, feat in enumerate(geoJSON))
-    # }
-    return list({UIDs[i]:np.mean(rasArr[np.where(sampleRaster == i)])} for i, feat in enumerate(geoJSON))
+def getCenter(feat):
+    point = np.array(feat)
+    return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
+
+def getRasterValues(geoJSON, rasArr, UIDs, bounds):
+
+    rasInd = tools.rasterIndexer(rasArr.shape, bounds)
+    indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
+
+    return list({UIDs[i]: rasArr[inds[0], inds[1]]} for i, inds in enumerate(indices))
+
 
 
 def upsampleRaster(rasArr, featDims, densify=None):
@@ -98,7 +93,7 @@ def fillFacets(geoJSONpath, rasterPath, globeWrap, output, densify=False):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
-    rasCRS = getRasterInfo(rasterPath)
+    rasCRS, rasBounds = getRasterInfo(rasterPath)
 
     if globeWrap:
         pass
@@ -106,12 +101,12 @@ def fillFacets(geoJSONpath, rasterPath, globeWrap, output, densify=False):
         geoJSON = projectShapes(geoJSON, rasCRS)
         bounds =  projectBounds(bounds, rasCRS)
 
-    rasArr, oaff = loadRaster(rasterPath, 1, bounds, globeWrap)
+    rasArr, oaff = loadRaster(rasterPath, 1, bounds)
 
     if min(rasArr.shape) < 3 * featDims or densify:
         rasArr = upsampleRaster(rasArr, featDims, densify)
 
-    sampleVals = getRasterValues(geoJSON, rasArr, oaff, uidMap, bounds)
+    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, rasBounds)
 
     if output:
         with open(output, 'w') as oFile:
