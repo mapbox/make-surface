@@ -45,9 +45,11 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds):
 
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
 
-    vals = np.array(list(rasArr[inds[0], inds[1]] for i, inds in enumerate(indices)))
-
-    return list({UIDs[i]: rasArr[inds[0], inds[1]]} for i, inds in enumerate(indices))
+    return {
+        UIDs[i]: {
+            'value': rasArr[inds[0], inds[1]]
+        } for i, inds in enumerate(indices)
+    }
 
 
 
@@ -56,7 +58,7 @@ def upsampleRaster(rasArr, featDims, zooming=None):
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape)) * 3
+        zoomFactor = int(featDims / min(rasArr.shape)) * 4
     return zoom(rasArr, zoomFactor, order=1)
 
 def projectBounds(bbox, toCRS):
@@ -103,13 +105,13 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
 
     rasArr, oaff = loadRaster(rasterPath, band, bounds)
 
-    if min(rasArr.shape) < 3 * featDims or zooming:
+    if min(rasArr.shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
 
     if output:
         with open(output, 'w') as oFile:
-            oFile.write(json.dumps(sampleVals, indent=2))
+            oFile.write(json.dumps(sampleVals))
     else:
-        click.echo(json.dumps(sampleVals, indent=2))
+        click.echo(json.dumps(sampleVals))
