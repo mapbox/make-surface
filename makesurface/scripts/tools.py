@@ -11,7 +11,8 @@ class rasterIndexer:
         if y == None:
             y = x[1]
             x = x[0]
-        return [int(((1 - y - self.bounds.bottom) / self.yRange) * self.shape[0]),
+
+        return [int((1 - (y - self.bounds.bottom) / self.yRange) * self.shape[0]),
                 int(((x - self.bounds.left) / self.xRange) * self.shape[1])]
 
 def resampleAffine(otrans, factor):
