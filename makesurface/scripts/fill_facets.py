@@ -93,6 +93,8 @@ def projectShapes(features, toCRS):
 
 def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
 
+    print geoJSONpath
+
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
     rasCRS, rasBounds = getRasterInfo(rasterPath)
