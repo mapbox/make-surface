@@ -67,7 +67,7 @@ def triangulate(zoom, output, bounds=None, tile=None):
         bounds = np.array(bounds).astype(np.float64)
     elif tile:
         tile = np.array(tile).astype(np.uint16)
-        tBounds = mercantile.bounds(tile[0], tile[1], tile[2])
+        tBounds = mercantile.bounds(*tile)
         bounds = np.array([tBounds.west, tBounds.south, tBounds.east , tBounds.north])
     else:
         sys.exit('Error: A bounds or tile must be specified')
