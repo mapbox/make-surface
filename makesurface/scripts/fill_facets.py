@@ -20,9 +20,6 @@ def getRasterInfo(filePath):
         return src.crs
 
 def loadRaster(filePath, band, bounds, grib2):
-    """
-
-    """
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
             rasArr = src.read_band(band)
@@ -49,11 +46,6 @@ def getRasterValues(geoJSON, rasArr, oaff, UIDs, bounds):
             ((feat['geometry'], i) for i, feat in enumerate(geoJSON)),
             out_shape=rasArr.shape,
             transform=readaff)
-    # todo - rewrite to update geoJSON in-place
-    # return {
-    #     "type": "FeatureCollection",
-    #     "features": list(addGeoJSONprop(feat, 'value', np.mean(rasArr[np.where(sampleRaster == i)])) for i, feat in enumerate(geoJSON))
-    # }
     return list({UIDs[i]:np.mean(rasArr[np.where(sampleRaster == i)])} for i, feat in enumerate(geoJSON))
 
 
