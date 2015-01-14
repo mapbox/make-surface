@@ -11,7 +11,7 @@ def filterBadJSON(feat):
 
 def getBounds(features):
     xCoords = np.array(list(np.array(x['geometry']['coordinates'][0])[:,0] for x in features))
-    yCoords = np.array(list(np.array(x['geometry']['coordinates'][0])[:,1] for x in features))
+    yCoords = np.array(list(np.array(y['geometry']['coordinates'][0])[:,1] for y in features))
     return coords.BoundingBox(xCoords.min(), yCoords.min(), xCoords.max(), yCoords.max())
 
 def getGJSONinfo(geoJSONinfo):
