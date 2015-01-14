@@ -38,11 +38,9 @@ def loadRaster(filePath, band, bounds):
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
             oaff = src.affine
-            from matplotlib.pyplot import show, imshow
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
-            imshow(src.read_band(band, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))))
-            show()
+
             return src.read_band(band, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))), oaff
 
 def addGeoJSONprop(feat, propName, propValue):

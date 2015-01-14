@@ -88,7 +88,7 @@ def fillfacets(infile, sampleraster, output, noproject, band, zooming):
     Use GeoJSON-like geometry to get raster values
     """
     try:
-        input = click.open_file(infile).readlines()
+        input = click.open_file(infile)
     except IOError:
         input = [infile]
 
