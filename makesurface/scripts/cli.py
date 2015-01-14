@@ -91,8 +91,9 @@ def fillfacets(infile, sampleraster, output, noproject, band, zooming):
         input = click.open_file(infile).readlines()
     except IOError:
         input = [infile]
+    print input[0]
 
-    makesurface.fillfacets(infile, sampleraster, noproject, output, band, zooming)
+    makesurface.fillfacets(input, sampleraster, noproject, output, band, zooming)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)

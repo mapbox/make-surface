@@ -2,15 +2,23 @@ import fiona, rasterio, mercantile, tools, json, click
 from rasterio import features, Affine, coords
 import numpy as np
 
-def getGJSONinfo(geoJSONpath):
+def filterBadJSON(feat):
+    try:
+        yield json.loads(feat)
+    except:
+        pass
+
+def getGJSONinfo(geoJSONinfo):
     """
     Loads a lattice of GeoJSON, bounds, and creates a list mapping an on-the-fly UID w/ the actual index value.
     """
-    with fiona.open(geoJSONpath, 'r') as gJSON:
-        UIDs = list(feat['properties']['quadtree'] for feat in gJSON)
-        featDimensions = int(np.sqrt(len(gJSON)/2.0))
-        geoJSON = list(gJSON)
-        return geoJSON, UIDs, coords.BoundingBox(gJSON.bounds[0], gJSON.bounds[1], gJSON.bounds[2], gJSON.bounds[3]), featDimensions
+    print list(i for i in filterBadJSON(geoJSONinfo))
+    return ''
+    # with fiona.open(geoJSONinfo, 'r') as gJSON:
+    #     UIDs = list(feat['properties']['quadtree'] for feat in gJSON)
+    #     featDimensions = int(np.sqrt(len(gJSON)/2.0))
+    #     geoJSON = list(gJSON)
+    #     return geoJSON, UIDs, coords.BoundingBox(gJSON.bounds[0], gJSON.bounds[1], gJSON.bounds[2], gJSON.bounds[3]), featDimensions
 
 def getRasterInfo(filePath):
     """
