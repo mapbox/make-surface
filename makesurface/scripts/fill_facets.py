@@ -56,12 +56,13 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds):
 
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
 
-    return {
-        UIDs[i]: {
-            'value': rasArr[inds[0], inds[1]]
-        } for i, inds in enumerate(indices)
-    }
-
+    return list(
+        json.dumps({
+            UIDs[i]: {
+                'value': rasArr[inds[0], inds[1]]
+            }
+        }) for i, inds in enumerate(indices)
+    )
 
 
 def upsampleRaster(rasArr, featDims, zooming=None):
@@ -125,4 +126,4 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
         with open(output, 'w') as oFile:
             oFile.write(json.dumps(sampleVals))
     else:
-        click.echo(json.dumps(sampleVals))
+        click.echo('\n'.join(sampleVals))
