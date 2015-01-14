@@ -72,20 +72,27 @@ def triangulate(zoom, output, bounds, tile):
     makesurface.triangulate(zoom, output, bounds, tile)
 
 @click.command()
-@click.argument('infile', type=str)
 @click.argument('sampleraster', type=click.Path(exists=True))
+@click.argument('infile', default='-', required=False)
 @click.option('--output', type=str, default=None,
     help='Write output to .json [default - print to stdout]')
+@click.option('--band', type=int, default=1,
+    help='Band to sample [default=1]')
 @click.option('--zooming', type=int, default=None,
     help='Manual upsampling of raster for sampling [Default = upsampling by estimated polygon density]')
-@click.option('--globewrap', '-g', is_flag=True,
-    help='Flag for processing of 0 - 360 grib2 rasters')
+@click.option('--noproject', '-np', is_flag=True,
+    help='Do not project data')
 
-def fillfacets(infile, sampleraster, output, globewrap, zooming):
+def fillfacets(infile, sampleraster, output, noproject, band, zooming):
     """
     Use GeoJSON-like geometry to get raster values
     """
-    makesurface.fillfacets(infile, sampleraster, globewrap, zooming, output)
+    try:
+        input = click.open_file(infile).readlines()
+    except IOError:
+        input = [infile]
+
+    makesurface.fillfacets(infile, sampleraster, noproject, output, band, zooming)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)

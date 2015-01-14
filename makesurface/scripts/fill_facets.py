@@ -1,5 +1,5 @@
 import fiona, rasterio, mercantile, tools, json, click
-from rasterio import features, Affine
+from rasterio import features, Affine, coords
 import numpy as np
 
 def getGJSONinfo(geoJSONpath):
@@ -10,49 +10,53 @@ def getGJSONinfo(geoJSONpath):
         UIDs = list(feat['properties']['quadtree'] for feat in gJSON)
         featDimensions = int(np.sqrt(len(gJSON)/2.0))
         geoJSON = list(gJSON)
-        return geoJSON, UIDs, gJSON.bounds, featDimensions
+        return geoJSON, UIDs, coords.BoundingBox(gJSON.bounds[0], gJSON.bounds[1], gJSON.bounds[2], gJSON.bounds[3]), featDimensions
 
 def getRasterInfo(filePath):
     """
     Load the raster, and get the crs (geoJSON needs to be projected into this crs to know what part of the raster to extract)
     """
     with rasterio.open(filePath, 'r') as src:
-        return src.crs
+        return src.crs, src.bounds
 
-def loadRaster(filePath, band, bounds, grib2):
+def loadRaster(filePath, band, bounds):
+    """
+
+    """
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
-            rasArr = src.read_band(band)
 
             oaff = src.affine
-            rasbounds = src.bounds
-            if grib2:
-                rasArr, oaff, rasbounds = tools.handleGrib2(rasArr, oaff)
-            rasInd = tools.rasterIndexer(rasArr.shape, rasbounds)
-            frInd = rasInd.getIndices(bounds[0], bounds[3])
-            toInd = rasInd.getIndices(bounds[2], bounds[1])
-            return rasArr[frInd[0]:toInd[0] + 1, frInd[1]:toInd[1] + 1], oaff
+
+            upperLeft = src.index(bounds.left, bounds.top)
+            lowerRight = src.index(bounds.right, bounds.bottom)
+            return src.read_band(band, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))), oaff
 
 def addGeoJSONprop(feat, propName, propValue):
     feat['properties'][propName] = propValue
     return feat
 
-def getRasterValues(geoJSON, rasArr, oaff, UIDs, bounds):
-    xCell = (bounds[2] - bounds[0]) / float(rasArr.shape[1])
-    yCell = (bounds[3] - bounds[1]) / float(rasArr.shape[0])
-    readaff = Affine(xCell, 0.00,bounds[0],
-                    0.00,-yCell, bounds[3])
-    sampleRaster = features.rasterize(
-            ((feat['geometry'], i) for i, feat in enumerate(geoJSON)),
-            out_shape=rasArr.shape,
-            transform=readaff)
-    return list({UIDs[i]:np.mean(rasArr[np.where(sampleRaster == i)])} for i, feat in enumerate(geoJSON))
+def getCenter(feat):
+    point = np.array(feat)
+    return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
+
+def getRasterValues(geoJSON, rasArr, UIDs, bounds):
+    rasInd = tools.rasterIndexer(rasArr.shape, bounds)
+
+    indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
+
+    return {
+        UIDs[i]: {
+            'value': rasArr[inds[0], inds[1]]
+        } for i, inds in enumerate(indices)
+    }
 
 
-def upsampleRaster(rasArr, featDims, densify=None):
+
+def upsampleRaster(rasArr, featDims, zooming=None):
     from scipy.ndimage import zoom
-    if densify and type(densify) == int:
-        zoomFactor = densify
+    if zooming and type(zooming) == int:
+        zoomFactor = zooming
     else:
         zoomFactor = int(featDims / min(rasArr.shape)) * 4
     return zoom(rasArr, zoomFactor, order=1)
@@ -74,6 +78,7 @@ def projectShapes(features, toCRS):
     import fiona.crs as fcrs
     from shapely.geometry import shape, mapping
     from shapely.ops import transform as shpTrans
+
     project = partial(
         pyproj.transform,
         pyproj.Proj(fcrs.from_epsg(4326)),
@@ -86,27 +91,27 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, globeWrap, output, densify=False):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
-    rasCRS = getRasterInfo(rasterPath)
+    rasCRS, rasBounds = getRasterInfo(rasterPath)
 
-    if globeWrap:
+    if noProject:
         pass
     else:
         geoJSON = projectShapes(geoJSON, rasCRS)
         bounds =  projectBounds(bounds, rasCRS)
 
-    rasArr, oaff = loadRaster(rasterPath, 1, bounds, globeWrap)
+    rasArr, oaff = loadRaster(rasterPath, band, bounds)
 
-    if min(rasArr.shape) < 3 * featDims or densify:
-        rasArr = upsampleRaster(rasArr, featDims, densify)
+    if min(rasArr.shape) < 4 * featDims or zooming:
+        rasArr = upsampleRaster(rasArr, featDims, zooming)
 
-    sampleVals = getRasterValues(geoJSON, rasArr, oaff, uidMap, bounds)
+    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
 
     if output:
         with open(output, 'w') as oFile:
-            oFile.write(json.dumps(sampleVals, indent=2))
+            oFile.write(json.dumps(sampleVals))
     else:
-        click.echo(json.dumps(sampleVals, indent=2))
+        click.echo(json.dumps(sampleVals))

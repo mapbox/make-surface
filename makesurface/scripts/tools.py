@@ -7,8 +7,12 @@ class rasterIndexer:
         self.cellSizeX = (self.xRange) / shape[1]
         self.cellSizeY = (self.yRange) / shape[0]
 
-    def getIndices(self, x, y):
-        return [int(((1 - y - self.bounds.bottom) / self.yRange) * self.shape[0]),
+    def getIndices(self, x, y=None):
+        if y == None:
+            y = x[1]
+            x = x[0]
+
+        return [int((1 - (y - self.bounds.bottom) / self.yRange) * self.shape[0]),
                 int(((x - self.bounds.left) / self.xRange) * self.shape[1])]
 
 def resampleAffine(otrans, factor):
