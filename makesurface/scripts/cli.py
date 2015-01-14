@@ -91,7 +91,6 @@ def fillfacets(infile, sampleraster, output, noproject, band, zooming):
         input = click.open_file(infile).readlines()
     except IOError:
         input = [infile]
-    print input[0]
 
     makesurface.fillfacets(input, sampleraster, noproject, output, band, zooming)
 

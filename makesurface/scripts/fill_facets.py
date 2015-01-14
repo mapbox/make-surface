@@ -3,22 +3,27 @@ from rasterio import features, Affine, coords
 import numpy as np
 
 def filterBadJSON(feat):
-    try:
-        yield json.loads(feat)
-    except:
-        pass
+    for f in feat:
+        try:
+            yield json.loads(f)
+        except:
+            pass
+
+def getBounds(features):
+    xCoords = np.array(list(np.array(x['geometry']['coordinates'][0])[:,0] for x in features))
+    yCoords = np.array(list(np.array(x['geometry']['coordinates'][0])[:,1] for x in features))
+    return coords.BoundingBox(xCoords.min(), yCoords.min(), xCoords.max(), yCoords.max())
 
 def getGJSONinfo(geoJSONinfo):
     """
     Loads a lattice of GeoJSON, bounds, and creates a list mapping an on-the-fly UID w/ the actual index value.
     """
-    print list(i for i in filterBadJSON(geoJSONinfo))
-    return ''
-    # with fiona.open(geoJSONinfo, 'r') as gJSON:
-    #     UIDs = list(feat['properties']['quadtree'] for feat in gJSON)
-    #     featDimensions = int(np.sqrt(len(gJSON)/2.0))
-    #     geoJSON = list(gJSON)
-    #     return geoJSON, UIDs, coords.BoundingBox(gJSON.bounds[0], gJSON.bounds[1], gJSON.bounds[2], gJSON.bounds[3]), featDimensions
+    features = list(i for i in filterBadJSON(geoJSONinfo))
+    UIDs = list(feat['properties']['quadtree'] for feat in features)
+    bounds = getBounds(features)
+    featDimensions = int(np.sqrt(len(features)/2.0))
+    
+    return features, UIDs, bounds, featDimensions
 
 def getRasterInfo(filePath):
     """
@@ -33,7 +38,6 @@ def loadRaster(filePath, band, bounds):
     """
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
-
             oaff = src.affine
 
             upperLeft = src.index(bounds.left, bounds.top)
