@@ -21,7 +21,7 @@ setup(name='makesurface',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'click', 'fiona', 'numpy', 'rasterio', 'shapely', 'scipy', 'mercantile', 'pyproj'
+          'click>=3.0', 'fiona', 'numpy', 'rasterio', 'shapely', 'scipy', 'mercantile', 'pyproj'
       ],
       extras_require={
           'test': ['pytest'],

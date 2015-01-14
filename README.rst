@@ -1,7 +1,7 @@
 makesurface ``cool-tools``
 ==========================  
 
-A few basic surface creation routines using (primarily) `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
+A few basic surface creation routines using `rasterio <https://github.com/mapbox/rasterio>`_, `fiona <https://github.com/Toblerity/Fiona>`_, and `shapely <https://github.com/Toblerity/shapely>`_
 
 .. role:: console(code)
    :language: console
@@ -20,7 +20,7 @@ Installation
 
 :console:`git clone git@github.com:mapbox/make-surface.git`
 
-3. CD into :console:`make-surface` then `pip install -e .`
+3. cd into :console:`make-surface` then `pip install -e .`
 
 Alternatively, install straight from GitHub:
 
@@ -39,7 +39,7 @@ Usage - Vectorize
 
 :console:`makesurface vectorize <input raster> <output shapefile> [OPTIONS]`
 
-Takes an input raster, and converts into a stacked shapefile. Sort of like :console:`gdal polygonize` with more control. Also prints out a cartocss template for stylizing (one style for each class).
+Takes an input raster, and converts into a stacked shapefile. Sort of like :console:`gdal polygonize` with more control. Also prints out a CartoCSS template for stylizing (one style for each class).
 
 Turns this:
 
@@ -93,7 +93,7 @@ Usage - fillfacets
 ------------------
 :console:`makesurface fillfacets [OPTIONS] INFILE SAMPLERASTER`
 
-Use GeoJSON-like trianlge geometry to get average regional raster value for that geometry
+Use GeoJSON-like triangle geometry to get average regional raster value for that geometry
 
 Options:
 - :console:`--output TEXT`      Write output to .json [default - print to stdout]
