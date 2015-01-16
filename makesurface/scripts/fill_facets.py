@@ -1,6 +1,7 @@
 import fiona, rasterio, mercantile, tools, json, click
 from rasterio import features, Affine, coords
 import numpy as np
+import psycopg2
 
 def filterBadJSON(feat):
     for f in feat:
@@ -52,17 +53,20 @@ def getCenter(feat):
     return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
 
 def getRasterValues(geoJSON, rasArr, UIDs, bounds):
+    conn = psycopg2.connect("dbname=lattice port=5432")
+    cur = conn.cursor()
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
-
-    return list(
-        {
-            UIDs[i]: {
-                'value': rasArr[inds[0], inds[1]]
-            }
-        } for i, inds in enumerate(indices)
-    )
+    for i, inds in enumerate(indices):
+        cur.execute('update latticegrid set value=%s where quadtree = %s', (rasArr[inds[0], inds[1]], UIDs[i],))
+    # return list(
+    #     {
+    #         UIDs[i]: {
+    #             'value': rasArr[inds[0], inds[1]]
+    #         }
+    #     } for i, inds in enumerate(indices)
+    
 
 def batchStride(output, batchsize):
     return list(
@@ -128,12 +132,12 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
 
-    if batchprint:
-        sampleVals = batchStride(sampleVals, int(batchprint))
+    # if batchprint:
+    #     sampleVals = batchStride(sampleVals, int(batchprint))
 
-    if output:
-        with open(output, 'w') as oFile:
-            oFile.write(json.dumps(sampleVals))
-    else:
-        for feat in sampleVals:
-            click.echo(json.dumps(feat))
+    # if output:
+    #     with open(output, 'w') as oFile:
+    #         oFile.write(json.dumps(sampleVals))
+    # else:
+    #     for feat in sampleVals:
+    #         click.echo(json.dumps(feat))
