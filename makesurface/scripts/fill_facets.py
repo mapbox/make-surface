@@ -57,13 +57,19 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds):
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
 
     return list(
-        json.dumps({
+        {
             UIDs[i]: {
                 'value': rasArr[inds[0], inds[1]]
             }
-        }) for i, inds in enumerate(indices)
+        } for i, inds in enumerate(indices)
     )
 
+def batchStride(output, batchsize):
+    return list(
+        {
+            d.keys()[0]: d[d.keys()[0]] for d in output[i:i+batchsize]
+        } for i in range(0, len(output), batchsize)
+    )
 
 def upsampleRaster(rasArr, featDims, zooming=None):
     from scipy.ndimage import zoom
@@ -103,7 +109,7 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchprint):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
@@ -122,8 +128,12 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
 
+    if batchprint:
+        sampleVals = batchStride(sampleVals, int(batchprint))
+
     if output:
         with open(output, 'w') as oFile:
             oFile.write(json.dumps(sampleVals))
     else:
-        click.echo('\n'.join(sampleVals))
+        for feat in sampleVals:
+            click.echo(json.dumps(feat))
