@@ -60,12 +60,8 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds):
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
     for i, inds in enumerate(indices):
         cur.execute('update latticegrid set value=%s where quadtree = %s', (rasArr[inds[0], inds[1]], UIDs[i],))
-    # return list(
-    #     {
-    #         UIDs[i]: {
-    #             'value': rasArr[inds[0], inds[1]]
-    #         }
-    #     } for i, inds in enumerate(indices)
+
+    conn.commit()
     
 
 def batchStride(output, batchsize):
@@ -80,7 +76,7 @@ def upsampleRaster(rasArr, featDims, zooming=None):
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape)) * 4
+        zoomFactor = int(featDims / min(rasArr.shape)) * 3
     return zoom(rasArr, zoomFactor, order=1)
 
 def projectBounds(bbox, toCRS):
@@ -127,7 +123,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
 
     rasArr, oaff = loadRaster(rasterPath, band, bounds)
 
-    if min(rasArr.shape) < 4 * featDims or zooming:
+    if min(rasArr.shape) < 3 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
