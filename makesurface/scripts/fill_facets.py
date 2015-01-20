@@ -133,6 +133,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
 
     if output:
         with open(output, 'w') as oFile:
+            sampleVals = batchStride(sampleVals, len(sampleVals))
             oFile.write(json.dumps(sampleVals))
     else:
         for feat in sampleVals:
