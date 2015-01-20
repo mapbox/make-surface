@@ -71,7 +71,7 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
 
     with rasterio.drivers():
         with rasterio.open(infile, 'r') as src:
@@ -92,15 +92,11 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
                 inarr[np.where(inarr.mask == True)] = setNoData
                 nodata = True
-            elif globeWrap and hasattr(inarr, 'mask'):
-                nodata = True
 
             #simplification threshold
             simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
             #handle 0 - 360 extent .grib2 files
-            if globeWrap:
-                inarr, oaff = tools.handleGrib2(inarr, oaff)
 
             #handle dif nodata situations
         
@@ -130,8 +126,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
     if smoothing and smoothing > 1:
         # upsample and update affine
         # global gribs have to be upsampled x 2 already
-        if globeWrap:
-            smoothing -=1
+
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
 
     else:

@@ -39,9 +39,6 @@ def cli():
 @click.option('--nibble', '-ni', is_flag=True,
     help='Expand mask by 1 pixel')
 
-@click.option('--globewrap', '-g', is_flag=True,
-    help='Flag for processing of 0 - 360 grib2 rasters')
-
 @click.option('--rapfix', '-rf', default=None,
     help='Rap Mask - Use only for fixing RAP.grib2s')
 
@@ -50,11 +47,11 @@ def cli():
 
 @click.option('--nosimple', '-ns', is_flag=True)
 
-def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix):
+def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, bidx, carto, axonometrize, nosimple, setnodata, nibble, rapfix):
     """
     Vectorize a raster
     """
-    makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
+    makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, bidx, carto, axonometrize, nosimple, setnodata, nibble, rapfix)
 
 @click.command()
 @click.option('--bounds', nargs=4, type=float, default=None,
@@ -76,15 +73,17 @@ def triangulate(zoom, output, bounds, tile):
 @click.argument('infile', default='-', required=False)
 @click.option('--output', type=str, default=None,
     help='Write output to .json [default - print to stdout]')
-@click.option('--band', type=int, default=1,
-    help='Band to sample [default=1]')
+@click.option('--bidx', type=int, default=1,
+    help='Bands to sample (eg "1, 2, 3, 4") [default=Band1]')
+@click.option('--outvars', type=int, default=1,
+    help='Output variables (eg "temp, precip, snowdepth") [default = "band1, band2, ... , bandN" for all input bands] - length must be symmetric to input bands')
 @click.option('--zooming', type=int, default=None,
     help='Manual upsampling of raster for sampling [Default = upsampling by estimated polygon density]')
 @click.option('--noproject', '-np', is_flag=True,
     help='Do not project data')
 @click.option('--batchprint', '-bp', default=None)
 
-def fillfacets(infile, sampleraster, output, noproject, band, zooming, batchprint):
+def fillfacets(infile, sampleraster, output, noproject, bidx, zooming, batchprint):
     """
     Use GeoJSON-like geometry to get raster values
     """
@@ -93,7 +92,7 @@ def fillfacets(infile, sampleraster, output, noproject, band, zooming, batchprin
     except IOError:
         input = [infile]
 
-    makesurface.fillfacets(input, sampleraster, noproject, output, band, zooming, batchprint)
+    makesurface.fillfacets(input, sampleraster, noproject, output, bidx, zooming, batchprint)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)
