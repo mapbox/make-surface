@@ -57,20 +57,23 @@ Arguments
 - :console:`<output shapefile>` Output shapefile to create - output will be "stacked", with lower values including areas of higher values
 
 Options:
-- :console:`-b, --band TEXT`          Input band to vectorize. Can be a number, or a band name [default = 1]
-- :console:`-cl, --classes TEXT`      Number of output classes, OR "all" for rounded input values (ignored if class file specified) [default = 10]
-- :console:`-cf, --classfile TEXT`    One-line CSV of break values [default = None]
-- :console:`-w, --weight INTEGER`     Weighting between equal interval and quantile breaks [default = 1 / equal interval]
-- :console:`-s, --smoothing INTEGER`  Value by which to zoom and smooth the data [default = None]
-- :console:`-nd, --nodata TEXT`       Manually defined nodata value - can be any number or "min" [default = None]
-- :console:`-set, --setnodata FLOAT`  Value to set nodata to (eg, if nodata / masked, set pixel to this value) [default = None]
-- :console:`-c, --carto`
-- :console:`-n, --nibble`            Expand mask by 1 pixel
-- :console:`-g, --globewrap`          Flag for processing of 0 - 360 grib2 rasters
-- :console:`-rf, --rapfix TEXT      Rap Mask - Use only for fixing RAP.grib2s
-- :console:`--axonometrize FLOAT`     EXPERIMENTAL
-- :console:`-ns, --nosimple`
-- :console:`--help`                   Show this message and exit.
+======  ======  ======  ======  ======
+Shortcode   Option Type Description Default
+======  ======  ======  ======  ======
+-b, --bidx INTEGER       Input band to vectorize.   1
+-cl, --classes TEXT      Number of output classes, OR "all" for rounded input values (ignored if class file specified) [default = 10]
+-cf, --classfile TEXT    One-line CSV of break values [default = None]
+-w, --weight FLOAT       Weighting between equal interval and quantile breaks [default = 1 / equal interval]
+-s, --smoothing INTEGER  Value by which to zoom and smooth the data [default = None]
+-n, --nodata TEXT        Manually defined nodata value - can be any number or "min" [default = None]
+-ov, --outvar TEXT       Name of output variable [Default = value]
+-set, --setnodata FLOAT  Value to set nodata to (eg, if nodata / masked, set pixel to this value) [default = None]
+-c, --carto
+-ni, --nibble            Expand mask by 1 pixel
+--axonometrize FLOAT     EXPERIMENTAL
+-ns, --nosimple
+--help                   Show this message and exit.
+======  ======  ======  ======  ======
 
 Usage - Triangulate
 -------------------
