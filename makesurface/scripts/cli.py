@@ -14,7 +14,7 @@ def cli():
 @click.argument('outfile', type=str)
 
 @click.option('--bidx', '-b', default=None,
-    help='Input band to vectorize. Can be a number, or a band name [default = 1]')
+    help='Input band to vectorize. [default = 1]')
 
 @click.option('--classes', '-cl', default='10',
     help='Number of output classes, OR "all" for rounded input values (ignored if class file specified) [default = 10]')

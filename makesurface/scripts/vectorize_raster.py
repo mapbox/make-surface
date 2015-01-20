@@ -75,15 +75,6 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     with rasterio.drivers():
         with rasterio.open(infile, 'r') as src:
-            try:
-                band = int(band)
-            except:
-                band = str(band)
-
-            if type(band) == str:
-                band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
-            elif type(band) != int:
-                band = 1
 
             inarr = src.read_band(band)
             oshape = src.shape
