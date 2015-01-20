@@ -39,9 +39,6 @@ def cli():
 @click.option('--nibble', '-ni', is_flag=True,
     help='Expand mask by 1 pixel')
 
-@click.option('--globewrap', '-g', is_flag=True,
-    help='Flag for processing of 0 - 360 grib2 rasters')
-
 @click.option('--rapfix', '-rf', default=None,
     help='Rap Mask - Use only for fixing RAP.grib2s')
 
@@ -50,11 +47,11 @@ def cli():
 
 @click.option('--nosimple', '-ns', is_flag=True)
 
-def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix):
+def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, bidx, carto, axonometrize, nosimple, setnodata, nibble, rapfix):
     """
     Vectorize a raster
     """
-    makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, band, carto, globewrap, axonometrize, nosimple, setnodata, nibble, rapfix)
+    makesurface.vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, bidx, carto, axonometrize, nosimple, setnodata, nibble, rapfix)
 
 @click.command()
 @click.option('--bounds', nargs=4, type=float, default=None,
