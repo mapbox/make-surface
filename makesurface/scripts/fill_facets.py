@@ -38,6 +38,7 @@ def loadRaster(filePath, band, bounds):
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
             oaff = src.affine
+
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
 
@@ -76,8 +77,9 @@ def upsampleRaster(rasArr, featDims, zooming=None):
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape)) * 4
-    return zoom(rasArr, zoomFactor, order=1)
+        zoomFactor = int(featDims / min(rasArr.shape)) * 3
+
+    return zoom(rasArr, zoomFactor + 1, order=1)
 
 def projectBounds(bbox, toCRS):
     import pyproj
@@ -125,6 +127,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
 
     if min(rasArr.shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
+
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
 

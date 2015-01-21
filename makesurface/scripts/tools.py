@@ -4,8 +4,6 @@ class rasterIndexer:
         self.bounds = bounds
         self.xRange = bounds.right - bounds.left
         self.yRange = bounds.top - bounds.bottom
-        self.cellSizeX = (self.xRange) / shape[1]
-        self.cellSizeY = (self.yRange) / shape[0]
 
     def getIndices(self, x, y=None):
         if y == None:
@@ -19,20 +17,6 @@ def resampleAffine(otrans, factor):
     from rasterio import Affine
     return Affine(otrans.a / float(factor),otrans.b,otrans.c,
              otrans.d,otrans.e / float(factor), otrans.f)
-
-def handleGrib2(gribArr, otrans):
-    from rasterio import Affine, coords
-    import numpy as np
-    from scipy.ndimage import zoom
-
-    bounds = coords.BoundingBox(otrans.c - 180.0 + (otrans.a / 2.0), -otrans.f, -(otrans.c - 180.0 + (otrans.a / 2.0)), otrans.f)
-    gribArr = zoom(gribArr, 2, order=1)
-    outAff = Affine(otrans.a / 2.0, otrans.b,otrans.c - 180.0 + (otrans.a / 2.0),
-             otrans.d,otrans.e / 2.0, otrans.f)
-    oshape = gribArr.shape
-    fixGrib = np.hstack((gribArr[:, oshape[1] / 2 + 1:oshape[1]],gribArr[:, 0:oshape[1] / 2 + 1]))
-
-    return fixGrib, outAff, bounds
 
 def fixRap(rapArr, maskPath):
     import rasterio
