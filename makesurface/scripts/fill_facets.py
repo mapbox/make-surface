@@ -38,6 +38,7 @@ def loadRaster(filePath, band, bounds):
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
             oaff = src.affine
+
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
 
@@ -57,21 +58,28 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds):
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
 
     return list(
-        json.dumps({
+        {
             UIDs[i]: {
                 'value': rasArr[inds[0], inds[1]]
             }
-        }) for i, inds in enumerate(indices)
+        } for i, inds in enumerate(indices)
     )
 
+def batchStride(output, batchsize):
+    return list(
+        {
+            d.keys()[0]: d[d.keys()[0]] for d in output[i:i+batchsize]
+        } for i in range(0, len(output), batchsize)
+    )
 
 def upsampleRaster(rasArr, featDims, zooming=None):
     from scipy.ndimage import zoom
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape)) * 4
-    return zoom(rasArr, zoomFactor, order=1)
+        zoomFactor = int(featDims / min(rasArr.shape)) * 3
+
+    return zoom(rasArr, zoomFactor + 1, order=1)
 
 def projectBounds(bbox, toCRS):
     import pyproj
@@ -103,7 +111,7 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchprint):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
@@ -120,10 +128,16 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming=False):
     if min(rasArr.shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
+
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
+
+    if batchprint:
+        sampleVals = batchStride(sampleVals, int(batchprint))
 
     if output:
         with open(output, 'w') as oFile:
+            sampleVals = batchStride(sampleVals, len(sampleVals))
             oFile.write(json.dumps(sampleVals))
     else:
-        click.echo('\n'.join(sampleVals))
+        for feat in sampleVals:
+            click.echo(json.dumps(feat))
