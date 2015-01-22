@@ -52,18 +52,23 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom=True):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
-
-    return list(
-        {
-            UIDs[i]: {
-                'value': rasArr[inds[0], inds[1]]
-            }
-        } for i, inds in enumerate(indices)
-    )
+    
+    if outputGeom:
+        return list(
+            addGeoJSONprop(feat, 'value', rasArr[indices[i][0],indices[i][1]]) for i, feat in enumerate(geoJSON)
+        )
+    else: 
+        return list(
+            {
+                UIDs[i]: {
+                    'value': rasArr[inds[0], inds[1]]
+                }
+            } for i, inds in enumerate(indices)
+        )
 
 def batchStride(output, batchsize):
     return list(
