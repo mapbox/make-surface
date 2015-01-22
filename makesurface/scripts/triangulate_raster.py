@@ -62,12 +62,12 @@ def getCorners(bounds, boolKey):
         corners[coordOrd[boolKey][1]]
     ]
 
-def triangulate(zoom, output, bounds, tile):
+def triangulate(zoom, output, bounds=None, tile=None):
     if bounds:
-        bounds = np.array(bounds.split(' ')).astype(np.float64)
+        bounds = np.array(bounds).astype(np.float64)
     elif tile:
-        tile = np.array(tile.split(' ')).astype(np.uint16)
-        tBounds = mercantile.bounds(tile[0], tile[1], tile[2])
+        tile = np.array(tile).astype(np.uint16)
+        tBounds = mercantile.bounds(*tile)
         bounds = np.array([tBounds.west, tBounds.south, tBounds.east , tBounds.north])
     else:
         sys.exit('Error: A bounds or tile must be specified')

@@ -71,19 +71,15 @@ def zoomSmooth(inArr, smoothing, inAffine):
     del zoomed, zoomMask
     return inArr, oaff
 
-def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, globeWrap, axonometrize, nosimple, setNoData, nibbleMask, rapFix):
+def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothing, band, cartoCSS, axonometrize, nosimple, setNoData, nibbleMask, outvar):
 
     with rasterio.drivers():
         with rasterio.open(infile, 'r') as src:
+
             try:
                 band = int(band)
             except:
-                band = str(band)
-
-            if type(band) == str:
-                band = filter(lambda i: src.tags(i)['GRIB_ELEMENT'] == band, src.indexes)
-            elif type(band) != int:
-                band = 1
+                raise ValueError('Band must be an integer')
 
             inarr = src.read_band(band)
             oshape = src.shape
@@ -92,18 +88,13 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
                 inarr[np.where(inarr.mask == True)] = setNoData
                 nodata = True
-            elif globeWrap and hasattr(inarr, 'mask'):
-                nodata = True
+            # elif globeWrap and hasattr(inarr, 'mask'):
+            #     nodata = True
 
             #simplification threshold
             simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
-            #handle 0 - 360 extent .grib2 files
-            if globeWrap:
-                inarr, oaff = tools.handleGrib2(inarr, oaff)
-
             #handle dif nodata situations
-        
             if nodata == 'min':
                 maskArr = np.zeros(inarr.shape, dtype=np.bool)
                 maskArr[np.where(inarr == inarr.min())] = True
@@ -121,17 +112,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             elif (type(src.meta['nodata']) == int or type(src.meta['nodata']) == float) and hasattr(inarr, 'mask'):
                 nodata = True
 
-            if rapFix:
-                inarr.mask = tools.fixRap(inarr, rapFix)
-
             if nibbleMask:
                 inarr.mask = maximum_filter(inarr.mask, size=3)
 
     if smoothing and smoothing > 1:
-        # upsample and update affine
-        # global gribs have to be upsampled x 2 already
-        if globeWrap:
-            smoothing -=1
         inarr, oaff = zoomSmooth(inarr, smoothing, oaff)
 
     else:
@@ -154,7 +138,12 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         for i in breaks:
             click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
-    schema = { 'geometry': 'MultiPolygon', 'properties': { 'value': 'float' } }
+    schema = {
+        'geometry': 'MultiPolygon',
+        'properties': {
+                outvar: 'float'
+        }
+    }
 
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
@@ -180,4 +169,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                             featurelist.append(poly)
                     if len(featurelist) != 0:
                         oPoly = MultiPolygon(featurelist)
-                        outshp.write({'geometry': mapping(oPoly),'properties': {'value': br}})
+                        outshp.write({
+                            'geometry': mapping(oPoly),
+                            'properties': {
+                                outvar: br
+                            }
+                        })
