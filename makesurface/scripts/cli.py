@@ -79,9 +79,11 @@ def triangulate(zoom, output, bounds, tile):
     help='Manual upsampling of raster for sampling [Default = upsampling by estimated polygon density]')
 @click.option('--noproject', '-np', is_flag=True,
     help='Do not project data')
+@click.option('--outputgeojson', '-ogjs', is_flag=True, default=False,
+    help='Output updated GeoJSON')
 @click.option('--batchprint', '-bp', default=None)
 
-def fillfacets(infile, sampleraster, output, noproject, band, zooming, batchprint):
+def fillfacets(infile, sampleraster, output, noproject, band, zooming, batchprint, outputgeojson):
     """
     Use GeoJSON-like geometry to get raster values
     """
@@ -90,7 +92,7 @@ def fillfacets(infile, sampleraster, output, noproject, band, zooming, batchprin
     except IOError:
         input = [infile]
 
-    makesurface.fillfacets(input, sampleraster, noproject, output, band, zooming, batchprint)
+    makesurface.fillfacets(input, sampleraster, noproject, output, band, zooming, batchprint, outputgeojson)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)

@@ -72,10 +72,7 @@ def triangulate(zoom, output, bounds=None, tile=None):
     else:
         sys.exit('Error: A bounds or tile must be specified')
 
-    gJSON = {
-        "type": "FeatureCollection",
-        "features": []
-    }
+    gJSON = []
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
@@ -88,10 +85,13 @@ def triangulate(zoom, output, bounds=None, tile=None):
             n = pGet.getParents('n', c, r, zoom)
             s = pGet.getParents('s', c, r, zoom)
             coords = getCorners(mercantile.bounds(c, r, zoom), boolKey)
-            gJSON['features'].append({
+            nQT = ''.join(np.dstack((n,quad)).flatten())+'n'
+            sQT = ''.join(np.dstack((s,quad)).flatten())+'s'
+
+            gJSON.append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": ''.join(np.dstack((n,quad)).flatten())+'n',
+                    "quadtree": nQT,
                     "dir": 'n'
                 },
                 "geometry": {
@@ -99,10 +99,10 @@ def triangulate(zoom, output, bounds=None, tile=None):
                     "coordinates": [coords[0].tolist()]
                 }
                 })
-            gJSON['features'].append({
+            gJSON.append({
                 "type": "Feature",
                 "properties": {
-                    "quadtree": ''.join(np.dstack((s,quad)).flatten())+'s',
+                    "quadtree": sQT,
                     "dir": 's'
                 },
                 "geometry": {
@@ -115,5 +115,7 @@ def triangulate(zoom, output, bounds=None, tile=None):
         with open(output, 'w') as oFile:
             oFile.write(json.dumps(gJSON, indent=2))
     else:
-        stdout = click.get_text_stream('stdout')
-        stdout.write(json.dumps(gJSON, indent=2))
+        for feat in gJSON:
+            click.echo(json.dumps(feat))
+        # stdout = click.get_text_stream('stdout')
+        # stdout.write(json.dumps(gJSON, indent=2))

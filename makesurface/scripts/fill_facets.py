@@ -52,7 +52,7 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom=True):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
@@ -116,7 +116,7 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchprint):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchprint, outputGeom):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
@@ -134,14 +134,13 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
 
-    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds)
+    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom)
 
-    if batchprint:
+    if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))
 
     if output:
         with open(output, 'w') as oFile:
-            sampleVals = batchStride(sampleVals, len(sampleVals))
             oFile.write(json.dumps(sampleVals))
     else:
         for feat in sampleVals:
