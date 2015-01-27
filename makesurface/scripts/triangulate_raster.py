@@ -77,9 +77,11 @@ def triangulate(zoom, output, bounds=None, tile=None):
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
     pGet = facetParent()
+    
+    noZero = lambda a: (abs(a)+a)/2
 
-    for r in range(tileMin.y, tileMax.y):
-        for c in range(tileMin.x, tileMax.x):
+    for r in range(noZero(tileMin.y), tileMax.y):
+        for c in range(noZero(tileMin.x), tileMax.x):
             quad = tools.quadtree(c, r, zoom)
             boolKey = (r+c) % 2 == 0
             n = pGet.getParents('n', c, r, zoom)

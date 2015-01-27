@@ -29,20 +29,24 @@ def getRasterInfo(filePath):
     Load the raster, and get the crs (geoJSON needs to be projected into this crs to know what part of the raster to extract)
     """
     with rasterio.open(filePath, 'r') as src:
-        return src.crs, src.bounds
+        return src.crs, src.bounds, src.count
 
-def loadRaster(filePath, band, bounds):
+def loadRaster(filePath, bands, bounds):
     """
 
     """
+
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
-            oaff = src.affine
 
+            oaff = src.affine
+            print bands, bounds
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
 
-            return src.read_band(band, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))), oaff
+            return list(
+                src.read_band(i[i.keys()[0]], window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+            ) for i in bands), oaff
 
 def addGeoJSONprop(feat, propName, propValue):
     feat['properties'][propName] = propValue
@@ -116,11 +120,25 @@ def projectShapes(features, toCRS):
                 shape(feat['geometry']))
         )} for feat in features)
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchprint, outputGeom):
+def handleBandArgs(bands, rasBands):
+    if len(bands) == 0:
+        return list(
+            {'band_%d' % i: i} for i in range(1, rasBands + 1) 
+        )
+    else:
+        return list(
+            {i[1]: int(i[0])} for i in bands
+        )
+
+def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
-    rasCRS, rasBounds = getRasterInfo(rasterPath)
+    rasCRS, rasBounds, rasBands = getRasterInfo(rasterPath)
+
+    bands = handleBandArgs(bands, rasBands)
+
+    print bands
 
     if noProject:
         pass
@@ -128,7 +146,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, band, zooming, batchp
         geoJSON = projectShapes(geoJSON, rasCRS)
         bounds =  projectBounds(bounds, rasCRS)
 
-    rasArr, oaff = loadRaster(rasterPath, band, bounds)
+    rasArr, oaff = loadRaster(rasterPath, bands, bounds)
 
     if min(rasArr.shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
