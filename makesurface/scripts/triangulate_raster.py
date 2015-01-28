@@ -66,9 +66,15 @@ def triangulate(zoom, output, bounds=None, tile=None):
     if bounds:
         bounds = np.array(bounds).astype(np.float64)
     elif tile:
+        epsilon = 1.0e-10
         tile = np.array(tile).astype(np.uint16)
         tBounds = mercantile.bounds(*tile)
-        bounds = np.array([tBounds.west, tBounds.south, tBounds.east , tBounds.north])
+        bounds = np.array([
+            tBounds.west + epsilon,
+            tBounds.south + epsilon,
+            tBounds.east - epsilon,
+            tBounds.north - epsilon
+            ])
     else:
         sys.exit('Error: A bounds or tile must be specified')
 
@@ -77,11 +83,9 @@ def triangulate(zoom, output, bounds=None, tile=None):
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
     pGet = facetParent()
-    
-    noZero = lambda a: (abs(a)+a)/2
 
-    for r in range(noZero(tileMin.y), tileMax.y):
-        for c in range(noZero(tileMin.x), tileMax.x):
+    for r in range(tileMin.y, tileMax.y):
+        for c in range(tileMin.x, tileMax.x):
             quad = tools.quadtree(c, r, zoom)
             boolKey = (r+c) % 2 == 0
             n = pGet.getParents('n', c, r, zoom)
@@ -119,5 +123,3 @@ def triangulate(zoom, output, bounds=None, tile=None):
     else:
         for feat in gJSON:
             click.echo(json.dumps(feat))
-        # stdout = click.get_text_stream('stdout')
-        # stdout.write(json.dumps(gJSON, indent=2))
