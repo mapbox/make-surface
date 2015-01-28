@@ -2,6 +2,7 @@ import fiona, rasterio, mercantile, tools, json, click
 from rasterio import features, Affine, coords
 import numpy as np
 
+
 def filterBadJSON(feat):
     for f in feat:
         try:
@@ -10,8 +11,12 @@ def filterBadJSON(feat):
             pass
 
 def getBounds(features):
-    xy = np.vstack(list(x['geometry']['coordinates'][0] for x in features))
-    return coords.BoundingBox(xy[:,0].min(), xy[:,1].min(), xy[:,0].max(), xy[:,1].max())
+    xy = np.vstack(list(f['geometry']['coordinates'][0] for f in features))
+    return coords.BoundingBox(
+        xy[:,0].min(),
+        xy[:,1].min(),
+        xy[:,0].max(), xy[:,1].max()
+        )
 
 def getGJSONinfo(geoJSONinfo):
     """
@@ -20,6 +25,7 @@ def getGJSONinfo(geoJSONinfo):
     features = list(i for i in filterBadJSON(geoJSONinfo))
     UIDs = list(feat['properties']['quadtree'] for feat in features)
     bounds = getBounds(features)
+
     featDimensions = int(np.sqrt(len(features)/2.0))
     
     return features, UIDs, bounds, featDimensions
@@ -38,55 +44,56 @@ def loadRaster(filePath, bands, bounds):
 
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
-
             oaff = src.affine
-            print bands, bounds
+
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
 
-            return list(
-                src.read_band(i[i.keys()[0]], window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
-            ) for i in bands), oaff
+            return np.dstack(list(
+                src.read_band(i[1], window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+                    ) for i in bands
+                )), oaff
 
-def addGeoJSONprop(feat, propName, propValue):
-    feat['properties'][propName] = propValue
+def addGeoJSONprop(feat, bands, rasArr,):
+    for i in bands:
+        feat['properties'][i[0]] = rasArr[i[2]]
     return feat
 
 def getCenter(feat):
     point = np.array(feat)
-    return np.mean(point[0:-1,0]), np.mean(point[0:-1,1])
+    return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
-    indices = list(rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])) for feat in geoJSON)
-    
+    indices = list(
+        rasInd.getIndices(getCenter(feat['geometry']['coordinates'][0])
+        ) for feat in geoJSON)
+
     if outputGeom:
         return list(
-            addGeoJSONprop(feat, 'value', rasArr[indices[i][0],indices[i][1]]) for i, feat in enumerate(geoJSON)
-        )
+            addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]]) for i, feat in enumerate(geoJSON)
+            )
     else: 
         return list(
             {
-                UIDs[i]: {
-                    'value': rasArr[inds[0], inds[1]]
-                }
+                UIDs[i]: {b[0]: rasArr[inds[0], inds[1], b[2]] for b in bands}
             } for i, inds in enumerate(indices)
-        )
+            )
 
 def batchStride(output, batchsize):
     return list(
         {
-            d.keys()[0]: d[d.keys()[0]] for d in output[i:i+batchsize]
+            d.keys()[0]: d[d.keys()[0]] for d in output[i:i + batchsize]
         } for i in range(0, len(output), batchsize)
-    )
+        )
 
 def upsampleRaster(rasArr, featDims, zooming=None):
     from scipy.ndimage import zoom
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape)) * 3
+        zoomFactor = int(featDims / min(rasArr.shape[0:2])) * 3
 
     return zoom(rasArr, zoomFactor + 1, order=1)
 
@@ -118,17 +125,18 @@ def projectShapes(features, toCRS):
             shpTrans(
                 project,
                 shape(feat['geometry']))
-        )} for feat in features)
+        )} for feat in features
+        )
 
 def handleBandArgs(bands, rasBands):
     if len(bands) == 0:
         return list(
-            {'band_%d' % i: i} for i in range(1, rasBands + 1) 
-        )
+            ('band_%d' % i, i, i - 1) for i in range(1, rasBands + 1) 
+            )
     else:
         return list(
-            {i[1]: int(i[0])} for i in bands
-        )
+            (b[1], int(b[0]), i) for i, b in enumerate(bands)
+            )
 
 def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom):
 
@@ -138,8 +146,6 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     bands = handleBandArgs(bands, rasBands)
 
-    print bands
-
     if noProject:
         pass
     else:
@@ -148,11 +154,10 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     rasArr, oaff = loadRaster(rasterPath, bands, bounds)
 
-    if min(rasArr.shape) < 4 * featDims or zooming:
+    if min(rasArr[0].shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
-
-    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom)
+    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands)
 
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))
