@@ -70,15 +70,15 @@ def createFacets(tileMin, tileMax, zoom, parentGet):
             n = parentGet.getParents('n', c, r, zoom)
             s = parentGet.getParents('s', c, r, zoom)
             coords = getCorners(mercantile.bounds(c, r, zoom), boolKey)
-            nQT = ''.join(np.dstack((n,quad)).flatten()) + 'n'
-            sQT = ''.join(np.dstack((s,quad)).flatten()) + 's'
+            nQT = ''.join(np.dstack((n, quad)).flatten()) + 'n'
+            sQT = ''.join(np.dstack((s, quad)).flatten()) + 's'
 
             yield {
                 "type": "Feature",
                 "properties": {
                     "quadtree": nQT,
                     "dir": 'n'
-                },
+                    },
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [coords[0].tolist()]
@@ -112,7 +112,6 @@ def triangulate(zoom, output, bounds=None, tile=None):
     else:
         sys.exit('Error: A bounds or tile must be specified')
 
-    gJSON = []
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)
 
@@ -124,6 +123,5 @@ def triangulate(zoom, output, bounds=None, tile=None):
         with open(output, 'w') as oFile:
             oFile.write(json.dumps(gJSON, indent=2))
     else:
-        t = list(feat for feat in gJSON)
-        # for feat in gJSON:
-        #     click.echo(json.dumps(feat))
+        for feat in gJSON:
+            click.echo(json.dumps(feat))

@@ -15,7 +15,8 @@ def getBounds(features):
     return coords.BoundingBox(
         xy[:,0].min(),
         xy[:,1].min(),
-        xy[:,0].max(), xy[:,1].max()
+        xy[:,0].max(),
+        xy[:,1].max()
         )
 
 def getGJSONinfo(geoJSONinfo):
@@ -164,7 +165,9 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if output:
         with open(output, 'w') as oFile:
-            oFile.write(json.dumps(sampleVals))
+            oFile.write(json.dumps(
+                sampleVals
+                ))
     else:
         for feat in sampleVals:
             click.echo(json.dumps(feat))
