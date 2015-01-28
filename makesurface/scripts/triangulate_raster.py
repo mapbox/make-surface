@@ -121,7 +121,8 @@ def triangulate(zoom, output, bounds=None, tile=None):
 
     if output:
         with open(output, 'w') as oFile:
-            oFile.write(json.dumps(gJSON, indent=2))
+            for feat in gJSON:
+                oFile.write(json.dumps(feat) + '\n')
     else:
         for feat in gJSON:
             click.echo(json.dumps(feat))
