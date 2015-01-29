@@ -55,16 +55,24 @@ def loadRaster(filePath, bands, bounds):
                     ) for i in bands
                 )), oaff
 
-def addGeoJSONprop(feat, bands, rasArr,):
+def addGeoJSONprop(feat, bands, rasArr, color):
     for i in bands:
         feat['properties'][i[0]] = rasArr[i[2]].item()
+    if color:
+        bhex = '#'
+        for i in bands:
+            color = hex(rasArr[i[2]].item()).replace('0x', '')
+            if len(color) == 1:
+                color = '0' + color
+            bhex += color
+        feat['properties']['color'] = bhex
     return feat
 
 def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(
@@ -73,7 +81,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands):
 
     if outputGeom:
         return list(
-            addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]]) for i, feat in enumerate(geoJSON)
+            addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]], color) for i, feat in enumerate(geoJSON)
             )
     else: 
         return list(
@@ -139,7 +147,7 @@ def handleBandArgs(bands, rasBands):
             (b[1], int(b[0]), i) for i, b in enumerate(bands)
             )
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom, color):
 
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
@@ -158,7 +166,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
     if min(rasArr[0].shape) < 4 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
-    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands)
+    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
     print len(sampleVals)
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))

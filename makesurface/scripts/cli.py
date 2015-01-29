@@ -10,41 +10,28 @@ def cli():
 
 @click.command()
 @click.argument('infile', type=str)
-
 @click.argument('outfile', type=str)
-
 @click.option('--bidx', '-b', default=1,
     help='Input band to vectorize. [default = 1]')
-
 @click.option('--classes', '-cl', default='10',
     help='Number of output classes, OR "all" for rounded input values (ignored if class file specified) [default = 10]')
-
 @click.option('--classfile', '-cf', 
     help='One-line CSV of break values [default = None]')
-
 @click.option('--weight', '-w', default=1.0,
     help='Weighting between equal interval and quantile breaks [default = 1 / equal interval]')
-
 @click.option('--smoothing', '-s', type=int,
     help='Value by which to zoom and smooth the data [default = None]')
-
 @click.option('--nodata', '-n', default=None,
     help='Manually defined nodata value - can be any number or "min" [default = None]')
-
 @click.option('--outvar', '-ov', default='value',
     help='Name of output variable [Default = value]')
-
 @click.option('--setnodata', '-set', default=None, type=float,
     help='Value to set nodata to (eg, if nodata / masked, set pixel to this value) [default = None]')
-
 @click.option('--carto', '-c', is_flag=True)
-
 @click.option('--nibble', '-ni', is_flag=True,
     help='Expand mask by 1 pixel')
-
 @click.option('--axonometrize', type=float, default=None,
     help='EXPERIMENTAL')
-
 @click.option('--nosimple', '-ns', is_flag=True)
 
 def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, bidx, carto, axonometrize, nosimple, setnodata, nibble, outvar):
@@ -82,8 +69,9 @@ def triangulate(zoom, output, bounds, tile):
 @click.option('--outputgeojson', '-ogjs', is_flag=True, default=False,
     help='Output updated GeoJSON')
 @click.option('--batchprint', '-bp', default=None)
+@click.option('--color', '-cl', default=False)
 
-def fillfacets(infile, sampleraster, output, noproject, bidxs, zooming, batchprint, outputgeojson):
+def fillfacets(infile, sampleraster, output, noproject, bidxs, zooming, batchprint, outputgeojson, color):
     """
     Use GeoJSON-like geometry to get raster values
     """
@@ -92,7 +80,7 @@ def fillfacets(infile, sampleraster, output, noproject, bidxs, zooming, batchpri
     except IOError:
         input = [infile]
 
-    makesurface.fillfacets(input, sampleraster, noproject, output, bidxs, zooming, batchprint, outputgeojson)
+    makesurface.fillfacets(input, sampleraster, noproject, output, bidxs, zooming, batchprint, outputgeojson, color)
 
 cli.add_command(vectorize)
 cli.add_command(triangulate)
