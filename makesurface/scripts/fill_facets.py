@@ -57,7 +57,7 @@ def loadRaster(filePath, bands, bounds):
 
 def addGeoJSONprop(feat, bands, rasArr,):
     for i in bands:
-        feat['properties'][i[0]] = rasArr[i[2]]
+        feat['properties'][i[0]] = rasArr[i[2]].item()
     return feat
 
 def getCenter(feat):
@@ -78,7 +78,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands):
     else: 
         return list(
             {
-                UIDs[i]: {b[0]: rasArr[inds[0], inds[1], b[2]] for b in bands}
+                UIDs[i]: {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
             } for i, inds in enumerate(indices)
             )
 
@@ -104,7 +104,7 @@ def projectBounds(bbox, toCRS):
     xCoords = (bbox[0], bbox[2], bbox[2], bbox[0])
     yCoords = (bbox[1], bbox[1], bbox[3], bbox[1])
     outBbox = toProj(xCoords, yCoords)
-    return (min(outBbox[0]),
+    return coords.BoundingBox(min(outBbox[0]),
             min(outBbox[1]),
             max(outBbox[0]),
             max(outBbox[1]))
@@ -159,15 +159,17 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands)
-
+    print len(sampleVals)
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))
 
     if output:
         with open(output, 'w') as oFile:
-            oFile.write(json.dumps(
-                sampleVals
-                ))
+            oFile.write(json.dumps({
+                "type": "FeatureCollection",
+                "features": sampleVals
+                }))
     else:
+        stdout = click.get_text_stream('stdout')
         for feat in sampleVals:
             click.echo(json.dumps(feat))

@@ -63,8 +63,8 @@ def getCorners(bounds, boolKey):
     ]
 
 def createFacets(tileMin, tileMax, zoom, parentGet):
-    for r in range(tileMin.y, tileMax.y):
-        for c in range(tileMin.x, tileMax.x):
+    for r in range(tileMin.y, tileMax.y + 1):
+        for c in range(tileMin.x, tileMax.x + 1):
             quad = tools.quadtree(c, r, zoom)
             boolKey = (r+c) % 2 == 0
             n = parentGet.getParents('n', c, r, zoom)
