@@ -69,7 +69,7 @@ def triangulate(zoom, output, bounds, tile):
 @click.option('--outputgeojson', '-ogjs', is_flag=True, default=False,
     help='Output updated GeoJSON')
 @click.option('--batchprint', '-bp', default=None)
-@click.option('--color', '-cl', default=False)
+@click.option('--color', '-cl', default=False, is_flag=True)
 
 def fillfacets(infile, sampleraster, output, noproject, bidxs, zooming, batchprint, outputgeojson, color):
     """

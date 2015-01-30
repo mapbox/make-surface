@@ -2,6 +2,7 @@ import fiona, rasterio, mercantile, tools, json, click
 from rasterio import features, Affine, coords
 import numpy as np
 
+np.seterr(divide='ignore', invalid='ignore')
 
 def filterBadJSON(feat):
     for f in feat:
@@ -99,12 +100,13 @@ def batchStride(output, batchsize):
 
 def upsampleRaster(rasArr, featDims, zooming=None):
     from scipy.ndimage import zoom
+    from math import ceil
     if zooming and type(zooming) == int:
         zoomFactor = zooming
     else:
-        zoomFactor = int(featDims / min(rasArr.shape[0:2])) * 3
+        zoomFactor = (int(ceil(featDims / float(min(rasArr.shape[0:2])))) * 2)
 
-    return zoom(rasArr, zoomFactor + 1, order=1)
+    return zoom(rasArr, (zoomFactor, zoomFactor, 1), order=1)
 
 def projectBounds(bbox, toCRS):
     import pyproj
@@ -148,7 +150,6 @@ def handleBandArgs(bands, rasBands):
             )
 
 def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom, color):
-
     geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
 
     rasCRS, rasBounds, rasBands = getRasterInfo(rasterPath)
@@ -163,11 +164,11 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     rasArr, oaff = loadRaster(rasterPath, bands, bounds)
 
-    if min(rasArr[0].shape) < 4 * featDims or zooming:
+    if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
     sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
-    print len(sampleVals)
+
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))
 
@@ -178,6 +179,5 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
                 "features": sampleVals
                 }))
     else:
-        stdout = click.get_text_stream('stdout')
         for feat in sampleVals:
             click.echo(json.dumps(feat))
