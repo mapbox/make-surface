@@ -21,7 +21,6 @@ def classify(inArr, classes, weighting):
     zRange = zMax-zMin
     zInterval = zRange / float(classes)
     breaks = []
-    click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
     for i in range(classes):
         eQint = i * zInterval + zMin
         quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
@@ -39,7 +38,7 @@ def classifyAll(inArr):
     zRange = zMax-zMin
     classes = int(zRange)
     zInterval = zRange / float(classes)
-    click.echo("Classifying into " + str(classes) + " classes between " + str(zMin) + " and " + str(zMax))
+    
     outRas += 1
     breaks = [int(zMin)]
     for i in range(1, classes):
@@ -52,7 +51,6 @@ def classifyAll(inArr):
 def classifyManual(inArr, classArr):
     outRas = np.zeros(inArr.shape)
     breaks = {}
-    click.echo("Manually Classifiying")
     for i in range(len(classArr)):
         breaks[i + 1] = float(classArr[i])
         outRas[np.where(inArr >= classArr[i])] = i + 1
@@ -147,9 +145,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
         tRas = np.zeros(classRas.shape, dtype=np.uint8)
-        click.echo("Vectorizing: ", nl=False)
         for i, br in enumerate(breaks):
-            click.echo("%d, " % (br), nl=False)
             tRas[np.where(classRas>=i)] = 1
             tRas[np.where(classRas<i)] = 0
             if nodata:
