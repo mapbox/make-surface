@@ -87,7 +87,8 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color):
     else: 
         return list(
             {
-                UIDs[i]: {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
+                'key': UIDs[i],
+                'attributes': {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
             } for i, inds in enumerate(indices)
             )
 

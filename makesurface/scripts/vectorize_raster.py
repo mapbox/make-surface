@@ -9,7 +9,7 @@ from scipy.ndimage.filters import median_filter, maximum_filter
 import matplotlib.pyplot as plot
 
 def classify(inArr, classes, weighting):
-    outRas = np.zeros(inArr.shape)
+    outRas = np.zeros(inArr.shape, dtype=np.uint8)
     zMax = np.max(inArr)
     zMin = np.min(inArr)
 
@@ -21,18 +21,23 @@ def classify(inArr, classes, weighting):
     zRange = zMax-zMin
     zInterval = zRange / float(classes)
     breaks = []
+
     for i in range(classes):
         eQint = i * zInterval + zMin
-        quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
+        if weighting == 1:
+            quant = 0
+        else:
+            quant = np.percentile(tempArray[np.isfinite(tempArray)], i/float(classes) * 100)
         cClass = weighting * eQint + (1.0 - weighting) * quant
         breaks.append(cClass)
         outRas[np.where(inArr > cClass)] = i
     outRas[np.where(inArr.mask == True)] = 0
     del tempArray
+
     return outRas.astype(np.uint8), breaks
 
 def classifyAll(inArr):
-    outRas = np.zeros(inArr.shape)
+    outRas = np.zeros(inArr.shape, dtype=np.uint8)
     zMax = np.max(inArr)
     zMin = np.min(inArr)
     zRange = zMax-zMin
@@ -86,13 +91,9 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             if (type(setNoData) == int or type(setNoData) == float) and hasattr(inarr, 'mask'):
                 inarr[np.where(inarr.mask == True)] = setNoData
                 nodata = True
-            # elif globeWrap and hasattr(inarr, 'mask'):
-            #     nodata = True
 
-            #simplification threshold
             simplest = ((src.bounds.top - src.bounds.bottom) / float(src.shape[0]))
 
-            #handle dif nodata situations
             if nodata == 'min':
                 maskArr = np.zeros(inarr.shape, dtype=np.bool)
                 maskArr[np.where(inarr == inarr.min())] = True
@@ -136,38 +137,30 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         for i in breaks:
             click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
-    schema = {
-        'geometry': 'MultiPolygon',
-        'properties': {
-                outvar: 'float'
-        }
-    }
 
-    with fiona.open(outfile, "w", "ESRI Shapefile", schema, crs=src.crs) as outshp:
-        tRas = np.zeros(classRas.shape, dtype=np.uint8)
-        for i, br in enumerate(breaks):
-            tRas[np.where(classRas>=i)] = 1
-            tRas[np.where(classRas<i)] = 0
-            if nodata:
-                tRas[np.where(classRas == 0)] = 0
-            for feature, shapes in features.shapes(np.asarray(tRas,order='C'),transform=oaff):
-                if shapes == 1:
-                    featurelist = []
-                    for c, f in enumerate(feature['coordinates']):
-                        if len(f) > 5 or c == 0:
-                            if axonometrize:
-                                f = np.array(f)
-                                f[:,1] += (axonometrize * br)
-                            if nosimple:
-                                 poly = Polygon(f)
-                            else:
-                                poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
-                            featurelist.append(poly)
-                    if len(featurelist) != 0:
-                        oPoly = MultiPolygon(featurelist)
-                        outshp.write({
-                            'geometry': mapping(oPoly),
-                            'properties': {
-                                outvar: br
-                            }
-                        })
+    for i, br in enumerate(breaks): 
+        tRas = (classRas >= i).astype(np.uint8)
+        if nodata:
+            tRas[np.where(classRas == 0)] = 0
+        for feature, shapes in features.shapes(np.asarray(tRas,order='C'),transform=oaff):
+            if shapes == 1:
+                featurelist = []
+                for c, f in enumerate(feature['coordinates']):
+                    if len(f) > 5 or c == 0:
+                        if axonometrize:
+                            f = np.array(f)
+                            f[:,1] += (axonometrize * br)
+                        if nosimple:
+                             poly = Polygon(f)
+                        else:
+                            poly = Polygon(f).simplify(simplest / float(smoothing), preserve_topology=True)
+                        featurelist.append(poly)
+                if len(featurelist) != 0:
+                    oPoly = MultiPolygon(featurelist)
+                    click.echo(json.dumps({
+                        'type': 'Feature',
+                        'geometry': mapping(oPoly),
+                        'properties': {
+                            outvar: br
+                        }
+                        }))
