@@ -10,7 +10,7 @@ def cli():
 
 @click.command()
 @click.argument('infile', type=str)
-@click.argument('outfile', type=str)
+@click.option('--outfile', type=str, default=False)
 @click.option('--bidx', '-b', default=1,
     help='Input band to vectorize. [default = 1]')
 @click.option('--classes', '-cl', default='10',

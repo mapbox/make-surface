@@ -78,7 +78,6 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
 
     with rasterio.drivers():
         with rasterio.open(infile, 'r') as src:
-
             try:
                 band = int(band)
             except:
@@ -137,6 +136,10 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
         for i in breaks:
             click.echo('[value = ' + str(breaks[i]) + '] { polygon-fill: @class' + str(i) + '}')
 
+    if outfile:
+        outputHandler = tools.dataOutput(True)
+    else:
+        outputHandler = tools.dataOutput()
 
     for i, br in enumerate(breaks): 
         tRas = (classRas >= i).astype(np.uint8)
@@ -157,10 +160,16 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
                         featurelist.append(poly)
                 if len(featurelist) != 0:
                     oPoly = MultiPolygon(featurelist)
-                    click.echo(json.dumps({
+                    outputHandler.out({
                         'type': 'Feature',
                         'geometry': mapping(oPoly),
                         'properties': {
                             outvar: br
                         }
-                        }))
+                        })
+    if outfile:
+        with open(outfile, 'w') as ofile:
+            ofile.write(json.dumps({
+                "type": "FeatureCollection",
+                "features": outputHandler.data
+            }))
