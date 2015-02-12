@@ -25,7 +25,7 @@ def getGJSONinfo(geoJSONinfo):
     Loads a lattice of GeoJSON, bounds, and creates a list mapping an on-the-fly UID w/ the actual index value.
     """
     features = list(i for i in filterBadJSON(geoJSONinfo))
-    UIDs = list(feat['properties']['quadtree'] for feat in features)
+    UIDs = list(feat['properties']['qt'] for feat in features)
     bounds = getBounds(features)
 
     featDimensions = int(np.sqrt(len(features)/2.0))
@@ -43,16 +43,14 @@ def loadRaster(filePath, bands, bounds):
     """
 
     """
-
     with rasterio.drivers():
         with rasterio.open(filePath,'r') as src:
             oaff = src.affine
-
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
-
+            filler = np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999
             return np.dstack(list(
-                src.read_band(i[1], window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+                src.read(i[1], boundless=True, out=filler, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
                     ) for i in bands
                 )), oaff
 
@@ -73,7 +71,7 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, outGeoJSON=False):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(
@@ -81,6 +79,8 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color):
         ) for feat in geoJSON)
 
     if outputGeom:
+        if outGeoJSON:
+            geoJSON = outGeoJSON
         return list(
             addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]], color) for i, feat in enumerate(geoJSON)
             )
@@ -113,7 +113,7 @@ def projectBounds(bbox, toCRS):
     import pyproj
     toProj = pyproj.Proj(toCRS)
     xCoords = (bbox[0], bbox[2], bbox[2], bbox[0])
-    yCoords = (bbox[1], bbox[1], bbox[3], bbox[1])
+    yCoords = (bbox[1], bbox[1], bbox[3], bbox[3])
     outBbox = toProj(xCoords, yCoords)
     return coords.BoundingBox(min(outBbox[0]),
             min(outBbox[1]),
@@ -160,6 +160,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
     if noProject:
         pass
     else:
+        ogeoJson = geoJSON
         geoJSON = projectShapes(geoJSON, rasCRS)
         bounds =  projectBounds(bounds, rasCRS)
 
@@ -167,8 +168,10 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
-
-    sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
+    if noProject:
+        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
+    else:
+        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color, ogeoJson)
 
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))
