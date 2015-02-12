@@ -31,6 +31,8 @@ Raster --> vector surface creation tools in python
 
 Takes an input raster, and converts into a stacked shapefile. Sort of like `gdal polygonize` with more control, optimized for vector tiles. Also can print out a CartoCSS template for stylizing (one style for each class).
 
+![image](https://cloud.githubusercontent.com/assets/5084513/6178638/ba760e44-b2c5-11e4-840f-a56bf8b9376f.png)
+
 Options:
 ```
   --outfile TEXT           Write to GeoJSON
@@ -75,6 +77,7 @@ Options:
 
 Use GeoJSON-like triangle geometry to get average regional raster value for that geometry
 
+![image](https://cloud.githubusercontent.com/assets/5084513/6178628/a32990d0-b2c5-11e4-87b0-e7505c38e26f.png)
 
 Options:
 ```
