@@ -6,7 +6,6 @@ import numpy as np
 import tools
 from scipy.ndimage import zoom
 from scipy.ndimage.filters import median_filter, maximum_filter
-import matplotlib.pyplot as plot
 
 def classify(inArr, classes, weighting):
     outRas = np.zeros(inArr.shape, dtype=np.uint8)
