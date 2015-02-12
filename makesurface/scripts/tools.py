@@ -1,3 +1,16 @@
+class dataOutput:
+    def printout(self, outval):
+        import click, json
+        click.echo(json.dumps(outval))
+    def saveout(self, outval):
+        self.data.append(outval)
+    def __init__(self, savedata=False):
+        if savedata:
+            self.out = self.saveout
+            self.data = list()
+        else:
+            self.out = self.printout
+
 class rasterIndexer:
     def __init__(self, shape, bounds):
         self.shape = shape
@@ -17,6 +30,8 @@ def resampleAffine(otrans, factor):
     from rasterio import Affine
     return Affine(otrans.a / float(factor),otrans.b,otrans.c,
              otrans.d,otrans.e / float(factor), otrans.f)
+
+
 
 def fixRap(rapArr, maskPath):
     import rasterio

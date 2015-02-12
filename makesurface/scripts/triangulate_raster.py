@@ -76,7 +76,7 @@ def createFacets(tileMin, tileMax, zoom, parentGet):
             yield {
                 "type": "Feature",
                 "properties": {
-                    "quadtree": nQT
+                    "qt": nQT
                     },
                 "geometry": {
                     "type": "Polygon",
@@ -86,7 +86,7 @@ def createFacets(tileMin, tileMax, zoom, parentGet):
             yield {
                 "type": "Feature",
                 "properties": {
-                    "quadtree": sQT,
+                    "qt": sQT,
                     },
                 "geometry": {
                     "type": "Polygon",
