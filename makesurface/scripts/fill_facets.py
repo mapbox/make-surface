@@ -157,7 +157,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     bands = handleBandArgs(bands, rasBands)
 
-    if noProject:
+    if rasCRS['proj'] == 'longlat' or noProject:
+        noProject = True
         pass
     else:
         ogeoJson = geoJSON
@@ -168,6 +169,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
+
+
     if noProject:
         sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
     else:
