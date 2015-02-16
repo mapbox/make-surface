@@ -87,7 +87,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
     else: 
         return list(
             {
-                'key': UIDs[i],
+                'qt': UIDs[i],
                 'attributes': {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
             } for i, inds in enumerate(indices)
             )
@@ -157,8 +157,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     bands = handleBandArgs(bands, rasBands)
 
-    if noProject:
-        pass
+    if rasCRS['proj'] == 'longlat' or noProject:
+        noProject = True
     else:
         ogeoJson = geoJSON
         geoJSON = projectShapes(geoJSON, rasCRS)
@@ -168,6 +168,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
+
+
     if noProject:
         sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
     else:
