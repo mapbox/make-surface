@@ -8,7 +8,7 @@ with open('README.rst', encoding='utf-8') as f:
 
 
 setup(name='makesurface',
-      version='0.2.7',
+      version='0.2.8',
       description="Create vector datasets from raster surfaces",
       long_description=long_description,
       classifiers=[],
