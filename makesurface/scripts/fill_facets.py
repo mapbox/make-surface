@@ -87,7 +87,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
     else: 
         return list(
             {
-                'key': UIDs[i],
+                'qt': UIDs[i],
                 'attributes': {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
             } for i, inds in enumerate(indices)
             )
@@ -159,7 +159,6 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if rasCRS['proj'] == 'longlat' or noProject:
         noProject = True
-        pass
     else:
         ogeoJson = geoJSON
         geoJSON = projectShapes(geoJSON, rasCRS)
