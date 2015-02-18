@@ -87,11 +87,11 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
     if outputGeom:
         if outGeoJSON:
             geoJSON = outGeoJSON
-        yield list(
+        return list(
             addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]], color) for i, feat in enumerate(geoJSON)
             )
     else: 
-        yield list(
+        return list(
             {
                 'qt': UIDs[i],
                 'attributes': getData(rasArr, inds, bands)
