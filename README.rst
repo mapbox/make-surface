@@ -83,6 +83,7 @@ Creates an empty triangular lattice: |image0|
       --bounds FLOAT...  Bounding Box ("w s e n") to create lattice in
       --tile INTEGER...  Tile ("x y z") to create lattice in
       --output TEXT      File to write to (.geojson)
+      --tableid TEXT     static id for databases
       --help             Show this message and exit.
 
 Usage - fillfacets

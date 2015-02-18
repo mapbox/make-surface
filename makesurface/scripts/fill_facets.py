@@ -71,6 +71,12 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
+def getData(rasArr, inds, bands):
+    try:
+        return {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
+    except:
+        return {b[0]: -999 for b in bands}
+
 def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, outGeoJSON=False):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
@@ -81,14 +87,14 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
     if outputGeom:
         if outGeoJSON:
             geoJSON = outGeoJSON
-        return list(
+        yield list(
             addGeoJSONprop(feat, bands, rasArr[indices[i][0],indices[i][1]], color) for i, feat in enumerate(geoJSON)
             )
     else: 
-        return list(
+        yield list(
             {
                 'qt': UIDs[i],
-                'attributes': {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
+                'attributes': getData(rasArr, inds, bands)
             } for i, inds in enumerate(indices)
             )
 
@@ -182,7 +188,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
         with open(output, 'w') as oFile:
             oFile.write(json.dumps({
                 "type": "FeatureCollection",
-                "features": sampleVals
+                "features": list(sampleVals)
                 }))
     else:
         for feat in sampleVals:
