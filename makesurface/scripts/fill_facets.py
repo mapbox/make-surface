@@ -180,5 +180,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
                 "features": list(sampleVals)
                 }))
     else:
-        for feat in sampleVals:
-            click.echo(json.dumps(feat))
+        try:
+            for feat in sampleVals:
+                click.echo(json.dumps(feat).rstrip())
+        except IOError as e:
+            pass
