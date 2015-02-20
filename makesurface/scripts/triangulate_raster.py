@@ -62,6 +62,27 @@ def getCorners(bounds, boolKey):
         corners[coordOrd[boolKey][1]]
     ]
 
+def createDBinit(tileMin, tileMax, zoom, parentGet, tableid):
+    for r in range(tileMin.y, tileMax.y + 1):
+        for c in range(tileMin.x, tileMax.x + 1):
+            quad = tools.quadtree(c, r, zoom)
+            boolKey = (r+c) % 2 == 0
+            n = parentGet.getParents('n', c, r, zoom)
+            s = parentGet.getParents('s', c, r, zoom)
+            nQT = ''.join(np.dstack((n, quad)).flatten()) + 'n'
+            sQT = ''.join(np.dstack((s, quad)).flatten()) + 's'
+
+            yield {
+                'id': tableid,
+                'qt': nQT
+            }
+
+            yield {
+                'id': tableid,
+                'qt': nQT
+            }
+
+
 def createFacets(tileMin, tileMax, zoom, parentGet):
     for r in range(tileMin.y, tileMax.y + 1):
         for c in range(tileMin.x, tileMax.x + 1):
@@ -94,7 +115,7 @@ def createFacets(tileMin, tileMax, zoom, parentGet):
                     }
                 }
 
-def triangulate(zoom, output, bounds=None, tile=None):
+def triangulate(zoom, output, bounds, tile, tableid):
     if bounds:
         bounds = np.array(bounds).astype(np.float64)
     elif tile:
@@ -115,7 +136,10 @@ def triangulate(zoom, output, bounds=None, tile=None):
 
     pGet = facetParent()
 
-    gJSON = createFacets(tileMin, tileMax, zoom, pGet)
+    if tableid:
+        gJSON = createDBinit(tileMin, tileMax, zoom, pGet, tableid)
+    else:
+        gJSON = createFacets(tileMin, tileMax, zoom, pGet)
 
     if output:
         with open(output, 'w') as oFile:

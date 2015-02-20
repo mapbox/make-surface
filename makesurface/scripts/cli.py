@@ -48,13 +48,15 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, bi
     help='Tile ("x y z") to create lattice in')
 @click.option('--output', type=str, default=None,
     help='File to write to (.geojson)')
+@click.option('--tableid', type=str, default=None,
+    help='static id for databases')
 @click.argument('zoom', type=int)
 
-def triangulate(zoom, output, bounds, tile):
+def triangulate(zoom, output, bounds, tile, tableid):
     """
     Creates triangular lattice at specified zoom (where triangle size == tile size)'
     """
-    makesurface.triangulate(zoom, output, bounds, tile)
+    makesurface.triangulate(zoom, output, bounds, tile, tableid)
 
 @click.command()
 @click.argument('sampleraster', type=click.Path(exists=True))

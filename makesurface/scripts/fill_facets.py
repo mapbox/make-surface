@@ -26,11 +26,10 @@ def getGJSONinfo(geoJSONinfo):
     """
     features = list(i for i in filterBadJSON(geoJSONinfo))
     UIDs = list(feat['properties']['qt'] for feat in features)
-    bounds = getBounds(features)
 
     featDimensions = int(np.sqrt(len(features)/2.0))
     
-    return features, UIDs, bounds, featDimensions
+    return features, UIDs, featDimensions
 
 def getRasterInfo(filePath):
     """
@@ -71,6 +70,12 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
+def getData(rasArr, inds, bands):
+    try:
+        return {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
+    except:
+        return {b[0]: -999 for b in bands}
+
 def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, outGeoJSON=False):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
@@ -88,7 +93,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
         return list(
             {
                 'qt': UIDs[i],
-                'attributes': {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
+                'attributes': getData(rasArr, inds, bands)
             } for i, inds in enumerate(indices)
             )
 
@@ -108,17 +113,6 @@ def upsampleRaster(rasArr, featDims, zooming=None):
         zoomFactor = (int(ceil(featDims / float(min(rasArr.shape[0:2])))) * 2)
 
     return zoom(rasArr, (zoomFactor, zoomFactor, 1), order=1)
-
-def projectBounds(bbox, toCRS):
-    import pyproj
-    toProj = pyproj.Proj(toCRS)
-    xCoords = (bbox[0], bbox[2], bbox[2], bbox[0])
-    yCoords = (bbox[1], bbox[1], bbox[3], bbox[3])
-    outBbox = toProj(xCoords, yCoords)
-    return coords.BoundingBox(min(outBbox[0]),
-            min(outBbox[1]),
-            max(outBbox[0]),
-            max(outBbox[1]))
 
 def projectShapes(features, toCRS):
     import pyproj
@@ -151,7 +145,7 @@ def handleBandArgs(bands, rasBands):
             )
 
 def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom, color):
-    geoJSON, uidMap, bounds, featDims = getGJSONinfo(geoJSONpath)
+    geoJSON, uidMap, featDims = getGJSONinfo(geoJSONpath)
 
     rasCRS, rasBounds, rasBands = getRasterInfo(rasterPath)
 
@@ -159,10 +153,11 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if rasCRS['proj'] == 'longlat' or noProject:
         noProject = True
+        bounds = getBounds(geoJSON)
     else:
         ogeoJson = geoJSON
         geoJSON = projectShapes(geoJSON, rasCRS)
-        bounds =  projectBounds(bounds, rasCRS)
+        bounds = getBounds(geoJSON)
 
     rasArr, oaff = loadRaster(rasterPath, bands, bounds)
 
@@ -182,8 +177,11 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
         with open(output, 'w') as oFile:
             oFile.write(json.dumps({
                 "type": "FeatureCollection",
-                "features": sampleVals
+                "features": list(sampleVals)
                 }))
     else:
-        for feat in sampleVals:
-            click.echo(json.dumps(feat))
+        try:
+            for feat in sampleVals:
+                click.echo(json.dumps(feat).rstrip())
+        except IOError as e:
+            pass
