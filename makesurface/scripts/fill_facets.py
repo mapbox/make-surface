@@ -48,8 +48,9 @@ def loadRaster(filePath, bands, bounds):
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
             filler = np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999
+
             return np.dstack(list(
-                src.read(i[1], boundless=True, out=filler, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+                src.read(i[1], boundless=True, out=np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
                     ) for i in bands
                 )), oaff
 
@@ -163,7 +164,6 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
-
 
     if noProject:
         sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
