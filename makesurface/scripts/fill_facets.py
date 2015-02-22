@@ -151,7 +151,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     bands = handleBandArgs(bands, rasBands)
 
-    if rasCRS['proj'] == 'longlat' or noProject:
+    if rasCRS['init'] == 'longlat' or noProject:
         noProject = True
         bounds = getBounds(geoJSON)
     else:
