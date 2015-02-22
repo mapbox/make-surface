@@ -47,7 +47,7 @@ def loadRaster(filePath, bands, bounds):
             oaff = src.affine
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
-            filler = np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999
+            filler = np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1]), dtype=src.dtypes[0])
             return np.dstack(list(
                 src.read(i[1], boundless=True, out=filler, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
                     ) for i in bands
