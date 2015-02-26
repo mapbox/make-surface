@@ -147,4 +147,7 @@ def triangulate(zoom, output, bounds, tile, tableid):
                 oFile.write(json.dumps(feat) + '\n')
     else:
         for feat in gJSON:
-            click.echo(json.dumps(feat))
+            try:
+                click.echo(json.dumps(feat).rstrip())
+            except IOError as e:
+                pass

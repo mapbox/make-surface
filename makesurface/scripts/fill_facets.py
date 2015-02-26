@@ -38,7 +38,7 @@ def getRasterInfo(filePath):
     with rasterio.open(filePath, 'r') as src:
         return src.crs, src.bounds, src.count
 
-def loadRaster(filePath, bands, bounds):
+def loadRaster(filePath, bands, bounds, setnodata):
     """
 
     """
@@ -47,10 +47,9 @@ def loadRaster(filePath, bands, bounds):
             oaff = src.affine
             upperLeft = src.index(bounds.left, bounds.top)
             lowerRight = src.index(bounds.right, bounds.bottom)
-            filler = np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999
 
             return np.dstack(list(
-                src.read(i[1], boundless=True, out=np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) - 999, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+                src.read(i[1], boundless=True, out=np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) + setnodata, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
                     ) for i in bands
                 )), oaff
 
@@ -71,13 +70,13 @@ def getCenter(feat):
     point = np.array(feat)
     return np.mean(point[0:-1,0]),np.mean(point[0:-1,1])
 
-def getData(rasArr, inds, bands):
+def getData(rasArr, inds, bands, setnodata):
     try:
         return {b[0]: rasArr[inds[0], inds[1], b[2]].item() for b in bands}
     except:
-        return {b[0]: -999 for b in bands}
+        return {b[0]: setnodata for b in bands}
 
-def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, outGeoJSON=False):
+def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, setnodata, outGeoJSON=False):
     rasInd = tools.rasterIndexer(rasArr.shape, bounds)
 
     indices = list(
@@ -94,7 +93,7 @@ def getRasterValues(geoJSON, rasArr, UIDs, bounds, outputGeom, bands, color, out
         return list(
             {
                 'qt': UIDs[i],
-                'attributes': getData(rasArr, inds, bands)
+                'attributes': getData(rasArr, inds, bands, setnodata)
             } for i, inds in enumerate(indices)
             )
 
@@ -145,7 +144,7 @@ def handleBandArgs(bands, rasBands):
             (b[1], int(b[0]), i) for i, b in enumerate(bands)
             )
 
-def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom, color):
+def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batchprint, outputGeom, color, setnodata):
     geoJSON, uidMap, featDims = getGJSONinfo(geoJSONpath)
 
     rasCRS, rasBounds, rasBands = getRasterInfo(rasterPath)
@@ -160,15 +159,15 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
         geoJSON = projectShapes(geoJSON, rasCRS)
         bounds = getBounds(geoJSON)
 
-    rasArr, oaff = loadRaster(rasterPath, bands, bounds)
+    rasArr, oaff = loadRaster(rasterPath, bands, bounds, setnodata)
 
     if min(rasArr.shape[0:2]) < 2 * featDims or zooming:
         rasArr = upsampleRaster(rasArr, featDims, zooming)
 
     if noProject:
-        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color)
+        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color, setnodata)
     else:
-        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color, ogeoJson)
+        sampleVals = getRasterValues(geoJSON, rasArr, uidMap, bounds, outputGeom, bands, color, setnodata, ogeoJson)
 
     if batchprint and outputGeom != True:
         sampleVals = batchStride(sampleVals, int(batchprint))

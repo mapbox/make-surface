@@ -6,5 +6,5 @@ def vectorize(infile, outfile, classes, classfile, weight, nodata, smoothing, bi
 def triangulate(zoom, output, bounds, tile, tableid):
     triangulate_raster.triangulate(zoom, output, bounds, tile, tableid)
 
-def fillfacets(infile, sampleRaster, noproject, output, band, zooming, batchprint, outputGeom, color):
-    fill_facets.fillFacets(infile, sampleRaster, noproject, output, band, zooming, batchprint, outputGeom, color)
+def fillfacets(infile, sampleRaster, noproject, output, band, zooming, batchprint, outputGeom, color, setnodata):
+    fill_facets.fillFacets(infile, sampleRaster, noproject, output, band, zooming, batchprint, outputGeom, color, setnodata)
