@@ -72,13 +72,19 @@ def createDBinit(tileMin, tileMax, zoom, parentGet, tableid):
             nQT = ''.join(np.dstack((n, quad)).flatten()) + 'n'
             sQT = ''.join(np.dstack((s, quad)).flatten()) + 's'
 
+            if tableid.split(':')[0] == 'quadkey':
+                levels = int(tableid.split(':')[1])
+                tablehash = ''.join(quad[0:levels])
+            else:
+                tablehash = tableid
+
             yield {
-                'id': tableid,
+                'id': tablehash,
                 'qt': nQT
             }
 
             yield {
-                'id': tableid,
+                'id': tablehash,
                 'qt': nQT
             }
 
