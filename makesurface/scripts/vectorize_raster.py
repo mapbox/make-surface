@@ -82,7 +82,7 @@ def vectorizeRaster(infile, outfile, classes, classfile, weight, nodata, smoothi
             except:
                 raise ValueError('Band must be an integer')
 
-            inarr = src.read_band(band)
+            inarr = src.read(band)
             oshape = src.shape
             oaff = src.affine
 
