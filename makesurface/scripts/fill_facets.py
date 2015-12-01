@@ -49,7 +49,7 @@ def loadRaster(filePath, bands, bounds, setnodata):
             lowerRight = src.index(bounds.right, bounds.bottom)
 
             return np.dstack(list(
-                src.read(i[1], boundless=True, out=np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1])) + setnodata, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
+                src.read(i[1], boundless=True, out=np.zeros((lowerRight[0] - upperLeft[0], lowerRight[1] - upperLeft[1]), dtype=np.uint8) + setnodata, window=((upperLeft[0], lowerRight[0]),(upperLeft[1], lowerRight[1]))
                     ) for i in bands
                 )), oaff
 
@@ -151,7 +151,7 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
 
     bands = handleBandArgs(bands, rasBands)
 
-    if rasCRS['proj'] == 'longlat' or noProject:
+    if noProject or (hasattr(rasCRS, 'proj') and rasCRS['proj'] == 'longlat'):
         noProject = True
         bounds = getBounds(geoJSON)
     else:
@@ -179,8 +179,8 @@ def fillFacets(geoJSONpath, rasterPath, noProject, output, bands, zooming, batch
                 "features": list(sampleVals)
                 }))
     else:
-        try:
-            for feat in sampleVals:
+        for feat in sampleVals:
+            try:
                 click.echo(json.dumps(feat).rstrip())
-        except IOError as e:
-            pass
+            except IOError as e:
+                pass

@@ -121,7 +121,8 @@ def createFacets(tileMin, tileMax, zoom, parentGet):
                     }
                 }
 
-def triangulate(zoom, output, bounds, tile, tableid):
+def triangulate(zoom, output, bounds, tile, tableid, fileBounds):
+
     if bounds:
         bounds = np.array(bounds).astype(np.float64)
     elif tile:
@@ -134,8 +135,19 @@ def triangulate(zoom, output, bounds, tile, tableid):
             tBounds.east - epsilon,
             tBounds.north - epsilon
             ])
+    elif fileBounds:
+        epsilon = 1.0e-10
+        tBounds, proj = tools.getBounds(fileBounds)
+        tBounds = tools.unProjectBounds(tBounds, proj)
+        bounds = np.array([
+            tBounds.left + epsilon,
+            tBounds.bottom + epsilon,
+            tBounds.right - epsilon,
+            tBounds.top - epsilon
+            ]) 
     else:
         sys.exit('Error: A bounds or tile must be specified')
+
 
     tileMin = mercantile.tile(bounds[0], bounds[3], zoom)
     tileMax = mercantile.tile(bounds[2], bounds[1], zoom)

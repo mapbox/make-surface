@@ -31,7 +31,23 @@ def resampleAffine(otrans, factor):
     return Affine(otrans.a / float(factor),otrans.b,otrans.c,
              otrans.d,otrans.e / float(factor), otrans.f)
 
+def unProjectBounds(bbox, frCRS):
+    import pyproj
+    from rasterio import coords
 
+    toProj = pyproj.Proj(frCRS)
+    xCoords = (bbox[0], bbox[2], bbox[2], bbox[0])
+    yCoords = (bbox[1], bbox[1], bbox[3], bbox[1])
+    outBbox = toProj(xCoords, yCoords, inverse=True)
+    return coords.BoundingBox(min(outBbox[0]),
+            min(outBbox[1]),
+            max(outBbox[0]),
+            max(outBbox[1]))
+
+def getBounds(infile):
+    import rasterio
+    with rasterio.open(infile, 'r') as src:
+        return src.bounds, src.crs
 
 def fixRap(rapArr, maskPath):
     import rasterio

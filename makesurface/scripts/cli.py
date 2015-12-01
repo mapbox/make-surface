@@ -46,17 +46,19 @@ def vectorize(infile, outfile, classes, classfile, weight, smoothing, nodata, bi
     help='Bounding Box ("w s e n") to create lattice in')
 @click.option('--tile', nargs=3, type=int, default=None,
     help='Tile ("x y z") to create lattice in')
+@click.option('--boundsfile', type=click.Path(exists=True), default=None,
+    help='Create lattice within file bounds')
 @click.option('--output', type=str, default=None,
     help='File to write to (.geojson)')
 @click.option('--tableid', type=str, default=None,
     help='static id for databases')
 @click.argument('zoom', type=int)
 
-def triangulate(zoom, output, bounds, tile, tableid):
+def triangulate(zoom, output, bounds, tile, tableid, boundsfile):
     """
     Creates triangular lattice at specified zoom (where triangle size == tile size)'
     """
-    makesurface.triangulate(zoom, output, bounds, tile, tableid)
+    makesurface.triangulate(zoom, output, bounds, tile, tableid, boundsfile)
 
 @click.command()
 @click.argument('sampleraster', type=click.Path(exists=True))
@@ -87,6 +89,24 @@ def fillfacets(infile, sampleraster, output, noproject, bidxs, zooming, batchpri
 
     makesurface.fillfacets(input, sampleraster, noproject, output, bidxs, zooming, batchprint, outputgeojson, color, setnodata)
 
+@click.command()
+@click.argument('sampleraster', type=click.Path(exists=True))
+@click.argument('infile', default='-', required=False)
+@click.option('--outfile', '-o', default=None)
+def newfilltris(infile, sampleraster, outfile):
+    """
+    Use GeoJSON-like geometry to get raster values
+    """
+    try:
+        input = click.open_file(infile).readlines()
+    except IOError:
+        input = [infile]
+
+    makesurface.filltris(input, sampleraster, outfile)
+
+
+
 cli.add_command(vectorize)
 cli.add_command(triangulate)
 cli.add_command(fillfacets)
+cli.add_command(newfilltris)
