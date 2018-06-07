@@ -21,12 +21,12 @@ def jenksMatrices(data, nClasses):
         # `SZ` originally. this is the sum of the values seen thus
         # far when calculating variance.
         tSum = 0
-        // `ZSQ` originally. the sum of squares of values seen
-                // thus far
+        # `ZSQ` originally. the sum of squares of values seen
+        # thus far
         sumSquares = 0
-        // `WT` originally. This is the number of
+        # `WT` originally. This is the number of
         w = 0
-        // `IV` originally
+        # `IV` originally
         i4 = 0
         
         for m in range(1, l + 1):
