@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class dataOutput:
     def printout(self, outval):
         import click, json
